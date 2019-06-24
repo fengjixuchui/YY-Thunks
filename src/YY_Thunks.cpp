@@ -6,8 +6,11 @@
 #define _YY_APPLY_TO_LATE_BOUND_MODULES(_APPLY)                                                          \
     _APPLY(ntdll,                                        "ntdll"                                       ) \
     _APPLY(kernel32,                                     "kernel32"                                    ) \
+    _APPLY(psapi,                                        "psapi"                                       ) \
+    _APPLY(version,                                      "version"                                     ) \
 	_APPLY(advapi32,                                     "advapi32"                                    ) \
-    _APPLY(user32,                                       "user32"                                      ) 
+    _APPLY(user32,                                       "user32"                                      ) \
+    _APPLY(ws2_32,                                       "ws2_32"                                      )
 
 
 #define _YY_APPLY_TO_LATE_BOUND_FUNCTIONS(_APPLY)                                                        \
@@ -18,6 +21,8 @@
     _APPLY(RtlDosPathNameToNtPathName_U_WithStatus,      ntdll                                         ) \
     _APPLY(RtlFreeUnicodeString,                         ntdll                                         ) \
     _APPLY(NtQueryObject,                                ntdll                                         ) \
+    _APPLY(NtQueryInformationThread,                     ntdll                                         ) \
+    _APPLY(NtQueryInformationProcess,                    ntdll                                         ) \
     _APPLY(DecodePointer,                                kernel32                                      ) \
     _APPLY(EncodePointer,                                kernel32                                      ) \
     _APPLY(Wow64DisableWow64FsRedirection,               kernel32                                      ) \
@@ -50,28 +55,127 @@
     _APPLY(SetFileInformationByHandle,                   kernel32                                      ) \
     _APPLY(GetFinalPathNameByHandleW,                    kernel32                                      ) \
     _APPLY(GetFinalPathNameByHandleA,                    kernel32                                      ) \
+    _APPLY(GetLogicalProcessorInformation,               kernel32                                      ) \
+    _APPLY(GetLogicalProcessorInformationEx,             kernel32                                      ) \
+    _APPLY(GetNumaHighestNodeNumber,                     kernel32                                      ) \
+    _APPLY(RaiseFailFastException,                       kernel32                                      ) \
+    _APPLY(GetThreadId,                                  kernel32                                      ) \
+    _APPLY(GetProcessIdOfThread,                         kernel32                                      ) \
+    _APPLY(GetProcessId,                                 kernel32                                      ) \
+    _APPLY(QueryThreadCycleTime,                         kernel32                                      ) \
+    _APPLY(QueryProcessCycleTime,                        kernel32                                      ) \
+    _APPLY(QueryFullProcessImageNameW,                   kernel32                                      ) \
+    _APPLY(QueryFullProcessImageNameA,                   kernel32                                      ) \
+    _APPLY(CreateFile2,                                  kernel32                                      ) \
+    _APPLY(CreateEventExW,                               kernel32                                      ) \
+    _APPLY(CreateEventExA,                               kernel32                                      ) \
+    _APPLY(CreateMutexExW,                               kernel32                                      ) \
+    _APPLY(CreateMutexExA,                               kernel32                                      ) \
+    _APPLY(CreateSemaphoreExW,                           kernel32                                      ) \
+    _APPLY(CreateWaitableTimerExW,                       kernel32                                      ) \
+    _APPLY(SetThreadErrorMode,                           kernel32                                      ) \
+    _APPLY(GetThreadErrorMode,                           kernel32                                      ) \
+    _APPLY(GetErrorMode,                                 kernel32                                      ) \
+    _APPLY(CancelIoEx,                                   kernel32                                      ) \
+    _APPLY(AcquireSRWLockExclusive,                      kernel32                                      ) \
+    _APPLY(ReleaseSRWLockExclusive,                      kernel32                                      ) \
+    _APPLY(AcquireSRWLockShared,                         kernel32                                      ) \
+    _APPLY(ReleaseSRWLockShared,                         kernel32                                      ) \
+    _APPLY(TryAcquireSRWLockExclusive,                   kernel32                                      ) \
+    _APPLY(TryAcquireSRWLockShared,                      kernel32                                      ) \
+    _APPLY(EnumProcessModulesEx,                         psapi                                         ) \
+    _APPLY(GetWsChangesEx,                               psapi                                         ) \
+    _APPLY(QueryWorkingSetEx,                            psapi                                         ) \
+    _APPLY(GetFileVersionInfoExW,                        version                                       ) \
+    _APPLY(GetFileVersionInfoExA,                        version                                       ) \
+    _APPLY(GetFileVersionInfoSizeExW,                    version                                       ) \
+    _APPLY(GetFileVersionInfoSizeExA,                    version                                       ) \
     _APPLY(RegDeleteKeyExW,                              advapi32                                      ) \
     _APPLY(RegDeleteKeyExA,                              advapi32                                      ) \
     _APPLY(RegGetValueW,                                 advapi32                                      ) \
     _APPLY(RegGetValueA,                                 advapi32                                      ) \
-    _APPLY(IsWow64Message,                               user32                                        ) 
+    _APPLY(IsWow64Message,                               user32                                        ) \
+    _APPLY(inet_pton,                                    ws2_32                                        ) \
+    _APPLY(InetPtonW,                                    ws2_32                                        ) \
+    _APPLY(inet_ntop,                                    ws2_32                                        ) \
+    _APPLY(InetNtopW,                                    ws2_32                                        ) 
 
 #ifndef YY_Thunks_Support_Version
 #define YY_Thunks_Support_Version WDK_NTDDI_VERSION
 #endif
 
+#define _WINSOCKAPI_
+#define PSAPI_VERSION 1
+
 #define _Disallow_YY_KM_Namespace
 #include "km.h"
-#include "YY_Thunks.h"
 #include <Shlwapi.h>
-
-//dll 链接不一致
-#pragma warning(disable:4273)
-
-EXTERN_C_START
+#include <WinSock2.h>
+#include <ws2tcpip.h>
+#include <psapi.h>
+#include <winnls.h>
+#include "YY_Thunks.h"
 
 #if (YY_Thunks_Support_Version < NTDDI_WS03SP1)
-//Windows XP with SP2, Windows Server 2003 with SP1 
+#pragma comment(lib, "Advapi32.lib")
+#endif
+
+#if (YY_Thunks_Support_Version < NTDDI_WIN6)
+#pragma comment(lib, "Shlwapi.lib")
+#pragma comment(lib, "Ws2_32.lib")
+#pragma comment(lib, "version.lib")
+#endif
+
+#if (YY_Thunks_Support_Version < NTDDI_WIN7)
+#pragma comment(lib, "psapi.lib")
+#endif
+
+#define SRWLOCK_LOCKING   0x00000001ul
+//在YY-Thunks实现中，并不会更新等待时间
+#define SRWLOCK_WAITING   0x00000002ul
+#define SRWLOCK_DATA_MARK (~SIZE_T(0xFul))
+
+namespace YY
+{
+	namespace Thunks
+	{
+		namespace internal
+		{
+			static DWORD __fastcall BaseSetLastNTError(
+				_In_ NTSTATUS Status
+				)
+			{
+				auto pRtlNtStatusToDosError = try_get_RtlNtStatusToDosError();
+
+				//如果没有RtlNtStatusToDosError就直接设置Status代码吧，反正至少比没有错误代码强
+				DWORD lStatus = pRtlNtStatusToDosError ? pRtlNtStatusToDosError(Status) : Status;
+				SetLastError(lStatus);
+				return lStatus;
+			}
+
+			EXTERN_C typedef struct _ThreadContext
+			{
+				union
+				{
+					CALINFO_ENUMPROCEXEX pCalInfoEnumProcExEx;
+					DATEFMT_ENUMPROCEXEX lpDateFmtEnumProcExEx;
+				};
+				
+				LPARAM lParam;
+			} ThreadContext;
+
+			static ThreadContext* __fastcall BaseGetThreadContext()
+			{
+				static thread_local ThreadContext ThreadContext = {};
+
+				return &ThreadContext;
+			}
+		}
+
+#if (YY_Thunks_Support_Version < NTDDI_WS03SP1)
+//Windows XP with SP2, Windows Server 2003 with SP1
+
+EXTERN_C
 PVOID
 WINAPI
 DecodePointer(
@@ -92,8 +196,11 @@ _LCRT_DEFINE_IAT_SYMBOL(DecodePointer, _4);
 
 #endif
 
+
 #if (YY_Thunks_Support_Version < NTDDI_WS03SP1)
-//Windows XP with SP2, Windows Server 2003 with SP1 
+//Windows XP with SP2, Windows Server 2003 with SP1
+
+EXTERN_C
 PVOID
 WINAPI
 EncodePointer(
@@ -114,8 +221,11 @@ _LCRT_DEFINE_IAT_SYMBOL(EncodePointer, _4);
 
 #endif
 
-#if (YY_Thunks_Support_Version < NTDDI_WS03SP1) && defined _X86_
+
+#if (YY_Thunks_Support_Version < NTDDI_WS03SP1)
 //Windows XP Professional x64 Edition, Windows Server 2003 with SP1
+
+EXTERN_C
 LSTATUS
 APIENTRY
 RegDeleteKeyExW(
@@ -138,8 +248,11 @@ _LCRT_DEFINE_IAT_SYMBOL(RegDeleteKeyExW, _16);
 
 #endif
 
-#if (YY_Thunks_Support_Version < NTDDI_WS03SP1) && defined _X86_
+
+#if (YY_Thunks_Support_Version < NTDDI_WS03SP1)
 //Windows XP Professional x64 Edition, Windows Server 2003 with SP1
+
+EXTERN_C
 LSTATUS
 APIENTRY
 RegDeleteKeyExA(
@@ -158,10 +271,14 @@ RegDeleteKeyExA(
 }
 
 _LCRT_DEFINE_IAT_SYMBOL(RegDeleteKeyExA, _16);
+
 #endif
 
-#if (YY_Thunks_Support_Version < NTDDI_WS03) && defined _X86_
+
+#if (YY_Thunks_Support_Version < NTDDI_WS03)
 //Windows XP Professional x64 Edition, Windows Server 2003
+
+EXTERN_C
 BOOL
 WINAPI
 Wow64DisableWow64FsRedirection(
@@ -180,10 +297,14 @@ Wow64DisableWow64FsRedirection(
 }
 
 _LCRT_DEFINE_IAT_SYMBOL(Wow64DisableWow64FsRedirection, _4);
+
 #endif
 
-#if (YY_Thunks_Support_Version < NTDDI_WS03) && defined _X86_
+
+#if (YY_Thunks_Support_Version < NTDDI_WS03)
 //Windows XP Professional x64 Edition, Windows Server 2003
+
+EXTERN_C
 BOOL
 WINAPI
 Wow64RevertWow64FsRedirection(
@@ -202,10 +323,14 @@ Wow64RevertWow64FsRedirection(
 }
 
 _LCRT_DEFINE_IAT_SYMBOL(Wow64RevertWow64FsRedirection, _4);
+
 #endif
 
-#if (YY_Thunks_Support_Version < NTDDI_WS03) && defined _X86_
+
+#if (YY_Thunks_Support_Version < NTDDI_WS03)
 //Windows XP Professional x64 Edition, Windows Server 2003
+
+EXTERN_C
 BOOLEAN
 WINAPI
 Wow64EnableWow64FsRedirection(
@@ -225,10 +350,14 @@ Wow64EnableWow64FsRedirection(
 }
 
 _LCRT_DEFINE_IAT_SYMBOL(Wow64EnableWow64FsRedirection, _4);
+
 #endif
 
-#if (YY_Thunks_Support_Version < NTDDI_WS03SP1) && defined _X86_
+
+#if (YY_Thunks_Support_Version < NTDDI_WS03SP1)
 //Windows XP with SP2, Windows Server 2003 with SP1
+
+EXTERN_C
 BOOL
 WINAPI
 IsWow64Process(
@@ -251,8 +380,12 @@ _LCRT_DEFINE_IAT_SYMBOL(IsWow64Process, _8);
 
 #endif
 
+
 #if (YY_Thunks_Support_Version < NTDDI_WIN10_RS3) && (defined _X86_ || defined _AMD64_)
-//Windows 10, Version 1709，坑爹微软MSDN文档有误！
+//Windows 10, Version 1511
+//微软文档有点问题，实际x86以及amd64系统中，16299（RS3）才开始有此API。
+
+EXTERN_C
 BOOL
 WINAPI
 IsWow64Process2(
@@ -304,8 +437,11 @@ _LCRT_DEFINE_IAT_SYMBOL(IsWow64Process2, _12);
 
 #endif
 
+
 #if (YY_Thunks_Support_Version < NTDDI_WIN10_RS3) && (defined _X86_ || defined _AMD64_)
 //Windows 10, version 1709
+
+EXTERN_C
 _Must_inspect_result_
 HRESULT
 WINAPI
@@ -343,8 +479,11 @@ _LCRT_DEFINE_IAT_SYMBOL(IsWow64GuestMachineSupported, _8);
 
 #endif
 
+
 #if (YY_Thunks_Support_Version < NTDDI_WIN6)
 //Windows Vista, Windows Server 2008
+
+EXTERN_C
 ULONGLONG
 WINAPI
 GetTickCount64(
@@ -363,12 +502,16 @@ _LCRT_DEFINE_IAT_SYMBOL(GetTickCount64, _0);
 
 #endif
 
-#if (YY_Thunks_Support_Version < NTDDI_WS03SP1) && defined _X86_
+
+#if (YY_Thunks_Support_Version < NTDDI_WS03SP1)
 //Windows XP with SP2, Windows Server 2003 with SP1
+
+EXTERN_C
 BOOL
 WINAPI
 IsWow64Message(
-	VOID)
+	VOID
+    )
 {
 	if (auto const pIsWow64Message = try_get_IsWow64Message())
 	{
@@ -378,12 +521,15 @@ IsWow64Message(
 	return FALSE;
 }
 
-_LCRT_DEFINE_IAT_SYMBOL(IsWow64Process, _0);
+_LCRT_DEFINE_IAT_SYMBOL(IsWow64Message, _0);
 
 #endif
 
+
 #if (YY_Thunks_Support_Version < NTDDI_WIN6)
 //Windows Vista, Windows Server 2008
+
+EXTERN_C
 LSTATUS
 APIENTRY
 RegSetKeyValueW(
@@ -420,8 +566,11 @@ _LCRT_DEFINE_IAT_SYMBOL(RegSetKeyValueW, _24);
 
 #endif
 
+
 #if (YY_Thunks_Support_Version < NTDDI_WIN6)
 //Windows Vista, Windows Server 2008
+
+EXTERN_C
 LSTATUS
 APIENTRY
 RegSetKeyValueA(
@@ -458,8 +607,11 @@ _LCRT_DEFINE_IAT_SYMBOL(RegSetKeyValueA, _24);
 
 #endif
 
+
 #if (YY_Thunks_Support_Version < NTDDI_WIN6)
 //Windows Vista, Windows Server 2008
+
+EXTERN_C
 LSTATUS
 APIENTRY
 RegDeleteKeyValueW(
@@ -484,8 +636,11 @@ _LCRT_DEFINE_IAT_SYMBOL(RegDeleteKeyValueW, _12);
 
 #endif
 
+
 #if (YY_Thunks_Support_Version < NTDDI_WIN6)
 //Windows Vista, Windows Server 2008
+
+EXTERN_C
 LSTATUS
 APIENTRY
 RegDeleteKeyValueA(
@@ -510,8 +665,11 @@ _LCRT_DEFINE_IAT_SYMBOL(RegDeleteKeyValueA, _12);
 
 #endif
 
+
 #if (YY_Thunks_Support_Version < NTDDI_WIN6)
 //Windows Vista, Windows Server 2008
+
+EXTERN_C
 LSTATUS
 APIENTRY
 RegDeleteTreeW(
@@ -526,8 +684,11 @@ _LCRT_DEFINE_IAT_SYMBOL(RegDeleteTreeW, _8);
 
 #endif
 
+
 #if (YY_Thunks_Support_Version < NTDDI_WIN6)
 //Windows Vista, Windows Server 2008
+
+EXTERN_C
 LSTATUS
 APIENTRY
 RegDeleteTreeA(
@@ -542,8 +703,11 @@ _LCRT_DEFINE_IAT_SYMBOL(RegDeleteTreeA, _8);
 
 #endif
 
+
 #if (YY_Thunks_Support_Version < NTDDI_WIN8)
 //Windows 8, Windows Server 2012
+
+EXTERN_C
 VOID
 WINAPI
 GetSystemTimePreciseAsFileTime(
@@ -562,8 +726,11 @@ _LCRT_DEFINE_IAT_SYMBOL(GetSystemTimePreciseAsFileTime, _4);
 
 #endif
 
+
 #if (YY_Thunks_Support_Version < NTDDI_WIN6)
 //Windows Vista, Windows Server 2008
+
+EXTERN_C
 BOOL
 WINAPI
 InitializeCriticalSectionEx(
@@ -584,8 +751,11 @@ _LCRT_DEFINE_IAT_SYMBOL(InitializeCriticalSectionEx, _12);
 
 #endif
 
+
 #if (YY_Thunks_Support_Version < NTDDI_WIN6)
 //Windows Vista, Windows Server 2008
+
+EXTERN_C
 BOOL
 WINAPI
 InitOnceExecuteOnce(
@@ -639,8 +809,11 @@ _LCRT_DEFINE_IAT_SYMBOL(InitOnceExecuteOnce, _16);
 
 #endif
 
+
 #if (YY_Thunks_Support_Version < NTDDI_WS03)
 //Windows Vista, Windows Server 2003
+
+EXTERN_C
 DWORD
 WINAPI
 GetCurrentProcessorNumber(
@@ -663,8 +836,11 @@ _LCRT_DEFINE_IAT_SYMBOL(GetCurrentProcessorNumber, _0);
 
 #endif
 
+
 #if (YY_Thunks_Support_Version < NTDDI_WIN7)
 //Windows 7, Windows Server 2008 R2
+
+EXTERN_C
 VOID
 WINAPI
 GetCurrentProcessorNumberEx(
@@ -688,8 +864,11 @@ _LCRT_DEFINE_IAT_SYMBOL(GetCurrentProcessorNumberEx, _4);
 
 #endif
 
-#if (YY_Thunks_Support_Version < NTDDI_WINXPSP2) || defined _X86_
+
+#if (YY_Thunks_Support_Version < NTDDI_WINXPSP2)
 //Windows Vista, Windows XP Professional x64 Edition, Windows XP with SP2, Windows Server 2003
+
+EXTERN_C
 BOOL
 WINAPI
 GetNumaNodeProcessorMask(
@@ -713,8 +892,11 @@ _LCRT_DEFINE_IAT_SYMBOL(GetNumaNodeProcessorMask, _8);
 
 #endif
 
+
 #if (YY_Thunks_Support_Version < NTDDI_WIN7)
 //Windows 7, Windows Server 2008 R2
+
+EXTERN_C
 BOOL
 WINAPI
 GetNumaNodeProcessorMaskEx(
@@ -750,8 +932,11 @@ _LCRT_DEFINE_IAT_SYMBOL(GetNumaNodeProcessorMaskEx, _8);
 
 #endif
 
+
 #if (YY_Thunks_Support_Version < NTDDI_WIN7)
 //Windows 7, Windows Server 2008 R2
+
+EXTERN_C
 BOOL
 WINAPI
 SetThreadGroupAffinity(
@@ -789,8 +974,10 @@ _LCRT_DEFINE_IAT_SYMBOL(SetThreadGroupAffinity, _12);
 #endif
 
 
-#if (YY_Thunks_Support_Version < NTDDI_WS03SP1) || defined _X86_
+#if (YY_Thunks_Support_Version < NTDDI_WS03SP1)
 //Windows Vista, Windows XP Professional x64 Edition, Windows Server 2008, Windows Server 2003 with SP1
+
+EXTERN_C
 LSTATUS
 APIENTRY
 RegGetValueW(
@@ -1038,6 +1225,7 @@ RegGetValueW(
 _LCRT_DEFINE_IAT_SYMBOL(RegGetValueW, _28);
 
 
+EXTERN_C
 LSTATUS
 APIENTRY
 RegGetValueA(
@@ -1257,6 +1445,7 @@ _LCRT_DEFINE_IAT_SYMBOL(RegGetValueA, _28);
 #if (YY_Thunks_Support_Version < NTDDI_WIN6)
 //Windows Vista,  Windows Server 2008
 
+EXTERN_C
 LCID
 WINAPI
 LocaleNameToLCID(
@@ -1555,6 +1744,7 @@ _LCRT_DEFINE_IAT_SYMBOL(LocaleNameToLCID, _8);
 #if (YY_Thunks_Support_Version < NTDDI_WIN6)
 //Windows Vista,  Windows Server 2008
 
+EXTERN_C
 int
 WINAPI
 LCIDToLocaleName(
@@ -1865,9 +2055,11 @@ _LCRT_DEFINE_IAT_SYMBOL(LCIDToLocaleName, _16);
 
 #endif
 
+
 #if (YY_Thunks_Support_Version < NTDDI_WIN6)
 //Windows Vista,  Windows Server 2008
 
+EXTERN_C
 int
 WINAPI
 GetLocaleInfoEx(
@@ -1899,6 +2091,7 @@ _LCRT_DEFINE_IAT_SYMBOL(GetLocaleInfoEx, _16);
 #if (YY_Thunks_Support_Version < NTDDI_WIN6)
 //Windows Vista,  Windows Server 2008
 
+EXTERN_C
 int
 WINAPI
 GetDateFormatEx(
@@ -1931,9 +2124,11 @@ _LCRT_DEFINE_IAT_SYMBOL(GetDateFormatEx, _28);
 
 #endif
 
+
 #if (YY_Thunks_Support_Version < NTDDI_WIN6)
 //Windows Vista,  Windows Server 2008
 
+EXTERN_C
 int
 WINAPI
 GetTimeFormatEx(
@@ -1965,9 +2160,11 @@ _LCRT_DEFINE_IAT_SYMBOL(GetTimeFormatEx, _24);
 
 #endif
 
+
 #if (YY_Thunks_Support_Version < NTDDI_WIN6)
 //Windows Vista,  Windows Server 2008
 
+EXTERN_C
 int
 WINAPI
 GetNumberFormatEx(
@@ -2000,9 +2197,11 @@ _LCRT_DEFINE_IAT_SYMBOL(GetNumberFormatEx, _24);
 
 #endif
 
+
 #if (YY_Thunks_Support_Version < NTDDI_WIN6)
 //Windows Vista,  Windows Server 2008
 
+EXTERN_C
 int
 WINAPI
 GetCurrencyFormatEx(
@@ -2035,9 +2234,11 @@ _LCRT_DEFINE_IAT_SYMBOL(GetCurrencyFormatEx, _24);
 
 #endif
 
+
 #if (YY_Thunks_Support_Version < NTDDI_WIN6)
 //Windows Vista,  Windows Server 2008
 
+EXTERN_C
 int
 WINAPI
 GetUserDefaultLocaleName(
@@ -2058,9 +2259,11 @@ _LCRT_DEFINE_IAT_SYMBOL(GetUserDefaultLocaleName, _8);
 
 #endif
 
+
 #if (YY_Thunks_Support_Version < NTDDI_WIN6)
 //Windows Vista,  Windows Server 2008
 
+EXTERN_C
 int
 WINAPI
 GetSystemDefaultLocaleName(
@@ -2081,18 +2284,11 @@ _LCRT_DEFINE_IAT_SYMBOL(GetSystemDefaultLocaleName, _8);
 
 #endif
 
+
 #if (YY_Thunks_Support_Version < NTDDI_WIN6)
 //Windows Vista,  Windows Server 2008
-#include <winnls.h>
 
-struct EnumCalendarInfoExExDataInfo
-{
-	CALINFO_ENUMPROCEXEX pCalInfoEnumProcExEx;
-	LPARAM lParam;
-};
-
-static thread_local EnumCalendarInfoExExDataInfo __EnumCalendarInfoExExDataInfo;
-
+EXTERN_C
 BOOL
 WINAPI
 EnumCalendarInfoExEx(
@@ -2124,17 +2320,29 @@ EnumCalendarInfoExEx(
 	}
 
 	//保存上下文
-	__EnumCalendarInfoExExDataInfo.pCalInfoEnumProcExEx = pCalInfoEnumProcExEx;
-	__EnumCalendarInfoExExDataInfo.lParam = lParam;
+	auto pContext = internal::BaseGetThreadContext();
 
-	return EnumCalendarInfoExW(
+	auto pCalInfoEnumProcExExTmp = pContext->pCalInfoEnumProcExEx;
+	pContext->pCalInfoEnumProcExEx = pCalInfoEnumProcExEx;
+
+	auto lParamTmp = pContext->lParam;
+	pContext->lParam = lParam;
+
+	auto bSuccess = EnumCalendarInfoExW(
 			[](LPWSTR lpCalendarInfoString, CALID Calendar)->BOOL
 			{
-				return __EnumCalendarInfoExExDataInfo.pCalInfoEnumProcExEx(lpCalendarInfoString, Calendar, nullptr, __EnumCalendarInfoExExDataInfo.lParam);
+				auto pContext = internal::BaseGetThreadContext();
+				return pContext->pCalInfoEnumProcExEx(lpCalendarInfoString, Calendar, nullptr, pContext->lParam);
 			},
 			Locale,
 			Calendar,
 			CalType);
+
+	//恢复上下文
+	pContext->pCalInfoEnumProcExEx = pCalInfoEnumProcExExTmp;
+	pContext->lParam = lParamTmp;
+
+	return bSuccess;
 }
 
 _LCRT_DEFINE_IAT_SYMBOL(EnumCalendarInfoExEx, _24);
@@ -2144,16 +2352,8 @@ _LCRT_DEFINE_IAT_SYMBOL(EnumCalendarInfoExEx, _24);
 
 #if (YY_Thunks_Support_Version < NTDDI_WIN6)
 //Windows Vista,  Windows Server 2008
-#include <winnls.h>
 
-struct EnumDateFormatsExExDataInfo
-{
-	DATEFMT_ENUMPROCEXEX pCalInfoEnumProcExEx;
-	LPARAM lParam;
-};
-
-static thread_local EnumDateFormatsExExDataInfo __EnumDateFormatsExExDataInfo;
-
+EXTERN_C
 BOOL
 WINAPI
 EnumDateFormatsExEx(
@@ -2183,24 +2383,40 @@ EnumDateFormatsExEx(
 	}
 
 	//保存上下文
-	__EnumDateFormatsExExDataInfo.pCalInfoEnumProcExEx = lpDateFmtEnumProcExEx;
-	__EnumDateFormatsExExDataInfo.lParam = lParam;
+	auto pContext = internal::BaseGetThreadContext();
 
-	return EnumDateFormatsExW(
+	auto lpDateFmtEnumProcExExTmp = pContext->lpDateFmtEnumProcExEx;
+	pContext->lpDateFmtEnumProcExEx = lpDateFmtEnumProcExEx;
+
+	auto lParamTmp = pContext->lParam;
+	pContext->lParam = lParam;
+
+	auto pSuccess = EnumDateFormatsExW(
 			[](LPWSTR lpDateFormatString, CALID CalendarID)->BOOL
 			{
-				return __EnumDateFormatsExExDataInfo.pCalInfoEnumProcExEx(lpDateFormatString, CalendarID, __EnumCalendarInfoExExDataInfo.lParam);
+				auto pContext = internal::BaseGetThreadContext();
+				return pContext->lpDateFmtEnumProcExEx(lpDateFormatString, CalendarID, pContext->lParam);
 			},
 			Locale,
 			dwFlags);
+
+
+	//恢复上下文
+	pContext->lpDateFmtEnumProcExEx = lpDateFmtEnumProcExExTmp;
+	pContext->lParam = lParamTmp;
+
+	return pSuccess;
 }
 
 _LCRT_DEFINE_IAT_SYMBOL(EnumDateFormatsExEx, _16);
 
 #endif
 
+
 #if (YY_Thunks_Support_Version < NTDDI_WIN6)
 //Windows Vista,  Windows Server 2008
+
+EXTERN_C
 BOOL
 WINAPI
 GetFileInformationByHandleEx(
@@ -2210,7 +2426,7 @@ GetFileInformationByHandleEx(
 	_In_  DWORD dwBufferSize
 	)
 {
-	if (auto pGetFileInformationByHandleEx = try_get_GetFileInformationByHandleEx())
+	if (auto const pGetFileInformationByHandleEx = try_get_GetFileInformationByHandleEx())
 	{
 		return pGetFileInformationByHandleEx(hFile, FileInformationClass, lpFileInformation, dwBufferSize);
 	}
@@ -2335,10 +2551,7 @@ GetFileInformationByHandleEx(
 	}
 	else
 	{
-		auto pRtlNtStatusToDosError = try_get_RtlNtStatusToDosError();
-
-		//如果没有RtlNtStatusToDosError就直接设置Status代码吧，反正至少比没有错误代码强
-		SetLastError(pRtlNtStatusToDosError ? pRtlNtStatusToDosError(Status) : Status);
+		internal::BaseSetLastNTError(Status);
 
 		return FALSE;
 	}
@@ -2348,8 +2561,11 @@ _LCRT_DEFINE_IAT_SYMBOL(GetFileInformationByHandleEx, _16);
 
 #endif
 
+
 #if (YY_Thunks_Support_Version < NTDDI_WIN6)
 //Windows Vista,  Windows Server 2008
+
+EXTERN_C
 BOOL
 WINAPI
 SetFileInformationByHandle(
@@ -2372,7 +2588,7 @@ SetFileInformationByHandle(
 		return FALSE;
 	}
 
-
+	const auto ProcessHeap = ((TEB*)NtCurrentTeb())->ProcessEnvironmentBlock->ProcessHeap;
 	FILE_INFORMATION_CLASS NtFileInformationClass;
 	DWORD cbMinBufferSize;
 	bool bFreeFileInformation = false;
@@ -2419,16 +2635,14 @@ SetFileInformationByHandle(
 
 				if (Status < STATUS_SUCCESS)
 				{
-					auto pRtlNtStatusToDosError = try_get_RtlNtStatusToDosError();
-
-					SetLastError(pRtlNtStatusToDosError ? pRtlNtStatusToDosError(Status) : Status);
+					internal::BaseSetLastNTError(Status);
 
 					return FALSE;
 				}
 
 				auto dwNewBufferSize = sizeof(FILE_RENAME_INFO) + NtName.Length;
 
-				auto NewRenameInfo = (FILE_RENAME_INFO*)GlobalAlloc(GMEM_FIXED, dwNewBufferSize);
+				auto NewRenameInfo = (FILE_RENAME_INFO*)HeapAlloc(ProcessHeap, 0, dwNewBufferSize);
 				if (!NewRenameInfo)
 				{
 					auto lStatus = GetLastError();
@@ -2497,7 +2711,7 @@ SetFileInformationByHandle(
 	{
 		if (bFreeFileInformation)
 		{
-			GlobalFree((HGLOBAL)lpFileInformation);
+			HeapFree(ProcessHeap, 0, lpFileInformation);
 		}
 
 		SetLastError(ERROR_BAD_LENGTH);
@@ -2510,16 +2724,15 @@ SetFileInformationByHandle(
 
 	if (bFreeFileInformation)
 	{
-		GlobalFree((HGLOBAL)lpFileInformation);
+		HeapFree(ProcessHeap, 0, lpFileInformation);
 	}
 
 	if (Status >= STATUS_SUCCESS)
 		return TRUE;
 
-	auto pRtlNtStatusToDosError = try_get_RtlNtStatusToDosError();
 
-	//如果没有RtlNtStatusToDosError就直接设置Status代码吧，反正至少比没有错误代码强
-	SetLastError(pRtlNtStatusToDosError ? pRtlNtStatusToDosError(Status) : Status);
+	
+	internal::BaseSetLastNTError(Status);
 
 	return FALSE;
 }
@@ -2530,6 +2743,8 @@ _LCRT_DEFINE_IAT_SYMBOL(SetFileInformationByHandle, _16);
 
 #if (YY_Thunks_Support_Version < NTDDI_WIN6)
 //Windows Vista,  Windows Server 2008
+
+EXTERN_C
 DWORD
 WINAPI
 GetFinalPathNameByHandleW(
@@ -2579,6 +2794,7 @@ GetFinalPathNameByHandleW(
 		return 0;
 	}
 
+	const auto ProcessHeap = ((TEB*)NtCurrentTeb())->ProcessEnvironmentBlock->ProcessHeap;
 	LSTATUS lStatus = ERROR_SUCCESS;
 	DWORD   cchReturn = 0;
 
@@ -2592,17 +2808,26 @@ GetFinalPathNameByHandleW(
 	{
 		if (pObjectName)
 		{
-			GlobalFree(pObjectName);
-			pObjectName = nullptr;
+			auto pNewBuffer = (OBJECT_NAME_INFORMATION*)HeapReAlloc(ProcessHeap, 0, pObjectName, cbObjectName);
+
+			if (!pNewBuffer)
+			{
+				lStatus = ERROR_NOT_ENOUGH_MEMORY;
+				goto __Exit;
+			}
+
+			pObjectName = pNewBuffer;
 		}
-
-		pObjectName = (OBJECT_NAME_INFORMATION*)GlobalAlloc(GMEM_FIXED, cbObjectName);
-
-		if (!pObjectName)
+		else
 		{
-			//内存不足？
-			lStatus = ERROR_NOT_ENOUGH_MEMORY;
-			goto __Exit;
+			pObjectName = (OBJECT_NAME_INFORMATION*)HeapAlloc(ProcessHeap, 0, cbObjectName);
+
+			if (!pObjectName)
+			{
+				//内存不足？
+				lStatus = ERROR_NOT_ENOUGH_MEMORY;
+				goto __Exit;
+			}
 		}
 
 		auto Status = pNtQueryObject(hFile, ObjectNameInformation, pObjectName, cbObjectName, &cbObjectName);
@@ -2629,17 +2854,25 @@ GetFinalPathNameByHandleW(
 	{
 		if (pFileNameInfo)
 		{
-			GlobalFree(pFileNameInfo);
-			pFileNameInfo = nullptr;
+			auto pNewBuffer = (FILE_NAME_INFORMATION*)HeapReAlloc(ProcessHeap, 0, pFileNameInfo, cbFileNameInfo);
+			if (!pNewBuffer)
+			{
+				lStatus = ERROR_NOT_ENOUGH_MEMORY;
+				goto __Exit;
+			}
+
+			pFileNameInfo = pNewBuffer;
 		}
-
-		pFileNameInfo = (FILE_NAME_INFORMATION*)GlobalAlloc(GMEM_FIXED, cbFileNameInfo);
-
-		if (!pFileNameInfo)
+		else
 		{
-			//内存不足？
-			lStatus = ERROR_NOT_ENOUGH_MEMORY;
-			goto __Exit;
+			pFileNameInfo = (FILE_NAME_INFORMATION*)HeapAlloc(ProcessHeap, 0, cbFileNameInfo);
+
+			if (!pFileNameInfo)
+			{
+				//内存不足？
+				lStatus = ERROR_NOT_ENOUGH_MEMORY;
+				goto __Exit;
+			}
 		}
 
 		IO_STATUS_BLOCK IoStatusBlock;
@@ -2722,7 +2955,7 @@ GetFinalPathNameByHandleW(
 
 		const DWORD cbVolumeName = pObjectName->Name.Length - pFileNameInfo->FileNameLength + sizeof(lpszFilePath[0]);
 
-		auto szVolumeMountPoint = (wchar_t*)GlobalAlloc(GMEM_FIXED, cbVolumeName + sizeof(szGobal));
+		auto szVolumeMountPoint = (wchar_t*)HeapAlloc(ProcessHeap, 0, cbVolumeName + sizeof(szGobal));
 		if (!szVolumeMountPoint)
 		{
 			lStatus = ERROR_NOT_ENOUGH_MEMORY;
@@ -2743,12 +2976,12 @@ GetFinalPathNameByHandleW(
 		if (!GetVolumeNameForVolumeMountPointW(szVolumeMountPoint, szVolumeName, _countof(szVolumeName)))
 		{
 			lStatus = GetLastError();
-			GlobalFree(szVolumeMountPoint);
+			HeapFree(ProcessHeap, 0, szVolumeMountPoint);
 
 			goto __Exit;
 		}
 
-		GlobalFree(szVolumeMountPoint);
+		HeapFree(ProcessHeap, 0, szVolumeMountPoint);
 
 
 		if (VOLUME_NAME_GUID & dwFlags)
@@ -2830,9 +3063,9 @@ GetFinalPathNameByHandleW(
 
 __Exit:
 	if (pFileNameInfo)
-		GlobalFree(pFileNameInfo);
+		HeapFree(ProcessHeap, 0, pFileNameInfo);
 	if (pObjectName)
-		GlobalFree(pObjectName);
+		HeapFree(ProcessHeap, 0, pObjectName);
 
 	if (lStatus != ERROR_SUCCESS)
 	{
@@ -2851,6 +3084,8 @@ _LCRT_DEFINE_IAT_SYMBOL(GetFinalPathNameByHandleW, _16);
 
 #if (YY_Thunks_Support_Version < NTDDI_WIN6)
 //Windows Vista,  Windows Server 2008
+
+EXTERN_C
 DWORD
 WINAPI
 GetFinalPathNameByHandleA(
@@ -2865,14 +3100,30 @@ GetFinalPathNameByHandleA(
 		return pGetFinalPathNameByHandleA(hFile, lpszFilePath, cchFilePath, dwFlags);
 	}
 
-
+	const auto ProcessHeap = ((TEB*)NtCurrentTeb())->ProcessEnvironmentBlock->ProcessHeap;
+	wchar_t* szFilePathUnicode = nullptr;
 	for (DWORD cchszFilePathUnicode = 1040;;)
 	{
-		auto szFilePathUnicode = (wchar_t*)GlobalAlloc(GMEM_FIXED, cchszFilePathUnicode * sizeof(wchar_t));
-		if (!szFilePathUnicode)
+		if (szFilePathUnicode)
 		{
-			SetLastError(ERROR_NOT_ENOUGH_MEMORY);
-			return 0;
+			auto pNewBuffer = (wchar_t*)HeapReAlloc(ProcessHeap, 0, szFilePathUnicode, cchszFilePathUnicode * sizeof(wchar_t));
+			if (!pNewBuffer)
+			{
+				HeapFree(ProcessHeap, 0, szFilePathUnicode);
+				SetLastError(ERROR_NOT_ENOUGH_MEMORY);
+				return 0;
+			}
+
+			szFilePathUnicode = pNewBuffer;
+		}
+		else
+		{
+			szFilePathUnicode = (wchar_t*)HeapAlloc(ProcessHeap, 0, cchszFilePathUnicode * sizeof(wchar_t));
+			if (!szFilePathUnicode)
+			{
+				SetLastError(ERROR_NOT_ENOUGH_MEMORY);
+				return 0;
+			}
 		}
 
 		auto cchReturn = GetFinalPathNameByHandleW(hFile, szFilePathUnicode, cchszFilePathUnicode, dwFlags);
@@ -2882,14 +3133,15 @@ GetFinalPathNameByHandleA(
 		__Error:
 
 			auto lStatus = GetLastError();
-			GlobalFree(szFilePathUnicode);
+			HeapFree(ProcessHeap, 0, szFilePathUnicode);
 			SetLastError(lStatus);
+
+			return 0;
 		}
 		else if (cchReturn > cchszFilePathUnicode)
 		{
 			//缓冲区不足
 			cchszFilePathUnicode = cchReturn;
-			GlobalFree(szFilePathUnicode);
 			continue;
 		}
 		else
@@ -2913,7 +3165,7 @@ GetFinalPathNameByHandleA(
 				lpszFilePath[cchReturnANSI] = '\0';
 			}
 
-			GlobalFree(szFilePathUnicode);
+			HeapFree(ProcessHeap, 0, szFilePathUnicode);
 			return cchReturnANSI;
 		}
 	}
@@ -2923,4 +3175,2407 @@ _LCRT_DEFINE_IAT_SYMBOL(GetFinalPathNameByHandleA, _16);
 
 #endif
 
-EXTERN_C_END
+#if (YY_Thunks_Support_Version < NTDDI_WINXPSP3)
+//Windows Vista, Windows XP Professional x64 Edition, Windows XP with SP3 [desktop apps | UWP apps]
+//Windows Server 2003 [desktop apps | UWP apps]
+
+EXTERN_C
+BOOL
+WINAPI
+GetLogicalProcessorInformation(
+	_Out_writes_bytes_to_opt_(*ReturnedLength, *ReturnedLength) PSYSTEM_LOGICAL_PROCESSOR_INFORMATION Buffer,
+	_Inout_ PDWORD ReturnedLength
+	)
+{
+	if (auto pGetLogicalProcessorInformation = try_get_GetLogicalProcessorInformation())
+	{
+		return pGetLogicalProcessorInformation(Buffer, ReturnedLength);
+	}
+	
+	SetLastError(ERROR_INVALID_FUNCTION);
+	return FALSE;
+}
+
+_LCRT_DEFINE_IAT_SYMBOL(GetLogicalProcessorInformation, _8);
+
+#else
+using ::GetLogicalProcessorInformation;
+#endif
+
+
+#if (YY_Thunks_Support_Version < NTDDI_WIN7)
+//Windows 7, Windows Server 2008 R2
+
+EXTERN_C
+BOOL
+WINAPI
+GetLogicalProcessorInformationEx(
+	_In_ LOGICAL_PROCESSOR_RELATIONSHIP RelationshipType,
+	_Out_writes_bytes_to_opt_(*ReturnedLength, *ReturnedLength) PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX Buffer,
+	_Inout_ PDWORD ReturnedLength
+	)
+{
+	if (auto pGetLogicalProcessorInformationEx = try_get_GetLogicalProcessorInformationEx())
+	{
+		return pGetLogicalProcessorInformationEx(RelationshipType, Buffer, ReturnedLength);
+	}
+
+
+	if (!ReturnedLength)
+	{
+		SetLastError(ERROR_INVALID_PARAMETER);
+		return FALSE;
+	}
+	
+	const auto cbBuffer = *ReturnedLength;
+
+	if (cbBuffer != 0 && Buffer == nullptr)
+	{
+		SetLastError(ERROR_NOACCESS);
+		return FALSE;
+	}
+	
+	const auto ProcessHeap = ((TEB*)NtCurrentTeb())->ProcessEnvironmentBlock->ProcessHeap;
+	LSTATUS lStatus = ERROR_SUCCESS;
+
+	SYSTEM_LOGICAL_PROCESSOR_INFORMATION* pProcessorInfo = nullptr;
+	DWORD cbLogicalProcessorInformation = 0;
+
+	
+	for (; YY::Thunks::GetLogicalProcessorInformation(pProcessorInfo, &cbLogicalProcessorInformation) == FALSE;)
+	{
+		lStatus = GetLastError();
+
+		if (ERROR_INSUFFICIENT_BUFFER == lStatus)
+		{
+			if (pProcessorInfo)
+			{
+				auto pNewBuffer = (SYSTEM_LOGICAL_PROCESSOR_INFORMATION*)HeapReAlloc(ProcessHeap, 0, pProcessorInfo, cbLogicalProcessorInformation);
+				if (pNewBuffer)
+				{
+					pProcessorInfo = pNewBuffer;
+					continue;
+				}
+			}
+			else
+			{
+				pProcessorInfo = (SYSTEM_LOGICAL_PROCESSOR_INFORMATION*)HeapAlloc(ProcessHeap, 0, cbLogicalProcessorInformation);
+
+				if (pProcessorInfo)
+					continue;
+			}
+
+			lStatus = ERROR_NOT_ENOUGH_MEMORY;
+		}
+
+		goto __End;
+	}
+
+
+	{
+		const auto pProcessorInfoLastItem = (SYSTEM_LOGICAL_PROCESSOR_INFORMATION*)((byte*)pProcessorInfo + cbLogicalProcessorInformation - sizeof(SYSTEM_LOGICAL_PROCESSOR_INFORMATION));
+
+		DWORD cbBufferUsed = 0;
+
+
+
+		for (auto pProcessorInfoStart = pProcessorInfo; pProcessorInfoStart <= pProcessorInfoLastItem; ++pProcessorInfoStart)
+		{
+			if (RelationshipType == LOGICAL_PROCESSOR_RELATIONSHIP::RelationAll
+				|| pProcessorInfoStart->Relationship == RelationshipType)
+			{
+				DWORD cbInfoNeed;
+
+				switch (pProcessorInfoStart->Relationship)
+				{
+				case RelationProcessorCore:
+				case RelationProcessorPackage:
+					cbInfoNeed = RTL_SIZEOF_THROUGH_FIELD(SYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX, Processor);
+					break;
+				case RelationNumaNode:
+					cbInfoNeed = RTL_SIZEOF_THROUGH_FIELD(SYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX, NumaNode);
+					break;
+				case RelationCache:
+					cbInfoNeed = RTL_SIZEOF_THROUGH_FIELD(SYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX, Cache);
+					break;
+				default:
+					cbInfoNeed = 0;
+					break;
+				}
+
+				//不支持传输此类型
+				if (0 == cbInfoNeed)
+					continue;
+
+				cbBufferUsed += cbInfoNeed;
+
+				if (cbBuffer >= cbBufferUsed)
+				{
+					auto pInfo = (SYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX*)((byte*)Buffer + cbBufferUsed);
+
+					memset(pInfo, 0, cbInfoNeed);
+
+					pInfo->Size = cbInfoNeed;
+					pInfo->Relationship = pProcessorInfoStart->Relationship;
+
+					switch (pProcessorInfoStart->Relationship)
+					{
+					case RelationProcessorCore:
+					case RelationProcessorPackage:
+						pInfo->Processor.Flags = pProcessorInfoStart->ProcessorCore.Flags;
+						pInfo->Processor.GroupCount = 1;
+						pInfo->Processor.GroupMask->Mask = pProcessorInfoStart->ProcessorMask;
+						break;
+					case RelationNumaNode:
+						pInfo->NumaNode.NodeNumber = pProcessorInfoStart->NumaNode.NodeNumber;
+						pInfo->NumaNode.GroupMask.Mask = pProcessorInfoStart->ProcessorMask;
+						break;
+					case RelationCache:
+						pInfo->Cache.Level = pProcessorInfoStart->Cache.Level;
+						pInfo->Cache.Associativity = pProcessorInfoStart->Cache.Associativity;
+						pInfo->Cache.LineSize = pProcessorInfoStart->Cache.LineSize;
+						pInfo->Cache.CacheSize = pProcessorInfoStart->Cache.Size;
+						pInfo->Cache.Type = pProcessorInfoStart->Cache.Type;
+						pInfo->Cache.GroupMask.Mask= pProcessorInfoStart->ProcessorMask;
+						break;
+					}
+				}
+			}
+		}
+
+
+		//传输 RelationGroup 信息，这里只能假设只有一组CPU
+		if (RelationshipType == LOGICAL_PROCESSOR_RELATIONSHIP::RelationAll
+			|| RelationGroup == RelationshipType)
+		{
+			const auto cbInfoNeed = RTL_SIZEOF_THROUGH_FIELD(SYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX, Group);
+
+			cbBufferUsed += cbInfoNeed;
+
+			if (cbBuffer >= cbBufferUsed)
+			{
+				auto pInfo = (SYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX*)((byte*)Buffer + cbBufferUsed);
+
+				memset(pInfo, 0, cbInfoNeed);
+
+				pInfo->Size = cbInfoNeed;
+				pInfo->Relationship = RelationGroup;
+
+				pInfo->Group.ActiveGroupCount = 1;
+				pInfo->Group.MaximumGroupCount = 1;
+
+				SYSTEM_INFO SystemInfo;
+
+				GetSystemInfo(&SystemInfo);
+
+
+				constexpr const size_t BitCountTable[256] =
+				{
+					0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4,
+					1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5,
+					1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5,
+					2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
+					1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5,
+					2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
+					2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
+					3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7,
+					1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5,
+					2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
+					2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
+					3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7,
+					2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
+					3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7,
+					3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7,
+					4, 5, 5, 6, 5, 6, 6, 7, 5, 6, 6, 7, 6, 7, 7, 8
+				};
+
+				pInfo->Group.GroupInfo->ActiveProcessorMask = SystemInfo.dwActiveProcessorMask;
+
+				auto& ActiveProcessorMask = SystemInfo.dwActiveProcessorMask;
+
+#if defined(_M_IX86) || defined(_M_ARM)
+				size_t ActiveProcessorCount = BitCountTable[((byte*)&ActiveProcessorMask)[0]] + BitCountTable[((byte*)&ActiveProcessorMask)[1]] + BitCountTable[((byte*)&ActiveProcessorMask)[2]] + BitCountTable[((byte*)&ActiveProcessorMask)[3]];
+#elif defined(_M_AMD64) || defined(_M_IA64) || defined(_M_ARM64)
+				size_t ActiveProcessorCount = BitCountTable[((byte*)&ActiveProcessorMask)[0]] + BitCountTable[((byte*)&ActiveProcessorMask)[1]] + BitCountTable[((byte*)&ActiveProcessorMask)[2]] + BitCountTable[((byte*)&ActiveProcessorMask)[3]]
+					+ BitCountTable[((byte*)&ActiveProcessorMask)[4]] + BitCountTable[((byte*)&ActiveProcessorMask)[5]] + BitCountTable[((byte*)&ActiveProcessorMask)[6]] + BitCountTable[((byte*)&ActiveProcessorMask)[7]];
+#else
+				size_t ActiveProcessorCount = 0;
+				for (int i = 0; i != sizeof(ActiveProcessorMask); ++i)
+				{
+					ActiveProcessorCount += BitCountTable[((byte*)&ActiveProcessorMask)[i]];
+				}
+#endif
+				pInfo->Group.GroupInfo->ActiveProcessorCount = ActiveProcessorCount;
+				pInfo->Group.GroupInfo->MaximumProcessorCount = SystemInfo.dwNumberOfProcessors;
+			}
+		}
+
+		*ReturnedLength = cbBufferUsed;
+
+		if (cbBufferUsed > cbBuffer)
+		{
+			//缓冲区不足
+			lStatus = ERROR_INSUFFICIENT_BUFFER;
+		}
+	}
+
+__End:
+	if (pProcessorInfo)
+		HeapFree(ProcessHeap, 0, pProcessorInfo);
+
+	if (lStatus != ERROR_SUCCESS)
+	{
+		SetLastError(lStatus);
+
+		return FALSE;
+	}
+	else
+	{
+		return TRUE;
+	}
+}
+
+_LCRT_DEFINE_IAT_SYMBOL(GetLogicalProcessorInformationEx, _12);
+
+#endif
+
+
+#if (YY_Thunks_Support_Version < NTDDI_WIN6)
+//Windows 8.1, Windows Vista [desktop apps | UWP apps]
+//Windows Server 2008 [desktop apps | UWP apps]
+
+EXTERN_C
+INT
+WINAPI
+inet_pton(
+    _In_                                      INT             Family,
+    _In_                                      PCSTR           pszAddrString,
+    _When_(Family == AF_INET, _Out_writes_bytes_(sizeof(IN_ADDR)))
+    _When_(Family == AF_INET6, _Out_writes_bytes_(sizeof(IN6_ADDR)))
+                                              PVOID           pAddrBuf
+    )
+{
+	if (auto pinet_pton = try_get_inet_pton())
+	{
+		return pinet_pton(Family, pszAddrString, pAddrBuf);
+	}
+
+	typedef char Char;
+
+	if (nullptr == pszAddrString || nullptr == pAddrBuf)
+	{
+		WSASetLastError(WSAEFAULT);
+		return -1;
+	}
+
+	if (AF_INET == Family)
+	{
+		//IPv4
+		UCHAR IPAddress[4] = {};
+
+		int i = 0;
+		for (; i != _countof(IPAddress); )
+		{
+			auto& IPNum = IPAddress[i++];
+
+			auto Start = pszAddrString;
+			for (; *Start && *Start != Char('.'); ++Start)
+			{
+				auto& Ch = *Start;
+
+				//必须是0~9数字
+				if (Ch >= Char('0') && Ch <= Char('9'))
+				{
+					auto NewNum = IPNum * 10ul + (Ch & 0x0Ful);
+					if (NewNum > 0xFF)
+					{
+						//不能大于255
+						return 0;
+					}
+
+					IPNum = (UCHAR)NewNum;
+				}
+				else
+				{
+					return 0;
+				}
+			}
+
+			//
+			if (Start == pszAddrString)
+				return 0;
+
+			pszAddrString = Start;
+
+			if (*pszAddrString == Char('\0'))
+				break;
+			else
+				++pszAddrString;
+		}
+
+		//未正常截断
+		if (i != _countof(IPAddress) || *pszAddrString != Char('\0'))
+			return 0;
+
+
+		((IN_ADDR *)pAddrBuf)->S_un.S_addr = *(ULONG*)IPAddress;
+
+		return 1;
+	}
+	else if (AF_INET6 == Family)
+	{
+		//IPv6
+
+		IN6_ADDR IPAddress;
+
+		int i = 0;
+		int InsertIndex = -1;
+
+		for (; i != _countof(IPAddress.u.Word) && *pszAddrString; )
+		{
+			if (pszAddrString[0] == Char(':') && pszAddrString[1] == Char(':'))
+			{
+				//缩进只能有一次
+				if (InsertIndex != -1)
+					return 0;
+
+
+				InsertIndex = i;
+
+				pszAddrString += 2;
+				continue;
+			}
+
+			auto& IPNum = IPAddress.u.Word[i++];
+			IPNum = 0;
+
+			auto Start = pszAddrString;
+			for (; *Start && *Start != Char(':'); ++Start)
+			{
+				auto& Ch = *Start;
+
+
+				unsigned int NewNum;
+
+				//0~9数字
+				if (Ch >= Char('0') && Ch <= Char('9'))
+				{
+					NewNum = Ch & 0x0Ful;
+				}
+				else if (Ch >= Char('a') && Ch <= Char('f'))
+				{
+					NewNum = Ch - Char('a') + 10;
+				}
+				else if (Ch >= Char('A') && Ch <= Char('F'))
+				{
+					NewNum = Ch - Char('A') + 10;
+				}
+				else
+				{
+					//无法识别
+					return 0;
+				}
+
+				NewNum = ((unsigned int)IPNum << 4) | NewNum;
+
+				if (NewNum > 0xFFFF)
+				{
+					//不能大于255
+					return 0;
+				}
+
+				IPNum = NewNum;
+			}
+
+
+			//截断错误
+			if (Start == pszAddrString)
+			{
+				return 0;
+			}
+
+
+			IPNum = _byteswap_ushort(IPNum);
+
+			pszAddrString = Start;
+
+			if (*pszAddrString == Char('\0'))
+			{
+				break;
+			}
+			else if (pszAddrString[1] == Char(':'))
+			{
+			}
+			else
+			{
+				++pszAddrString;
+			}
+		}
+
+
+		//未正常截断
+		if (*pszAddrString != Char('\0'))
+		{
+			return 0;
+		}
+		else if (i != _countof(IPAddress.u.Word) && InsertIndex == -1)
+		{
+			return 0;
+		}
+		else
+		{
+			if (InsertIndex == -1)
+			{
+				*(IN6_ADDR*)pAddrBuf = IPAddress;
+			}
+			else
+			{
+				//先复制头
+
+				auto j = 0;
+				for (; j != InsertIndex; ++j)
+				{
+					((IN6_ADDR*)pAddrBuf)->u.Word[j] = IPAddress.u.Word[j];
+				}
+
+				//补充中间 0
+				for (const auto Count = _countof(IPAddress.u.Word) - i + j; j != Count; ++j)
+				{
+					((IN6_ADDR*)pAddrBuf)->u.Word[j] = 0;
+				}
+
+				//复制小尾巴
+				for (; j != _countof(IPAddress.u.Word); ++j, ++InsertIndex)
+				{
+					((IN6_ADDR*)pAddrBuf)->u.Word[j] = IPAddress.u.Word[InsertIndex];
+				}
+			}
+			return 1;
+		}
+	}
+	else
+	{
+		WSASetLastError(WSAEAFNOSUPPORT);
+		return -1;
+	}
+}
+
+_LCRT_DEFINE_IAT_SYMBOL(inet_pton, _12);
+
+#endif
+
+
+#if (YY_Thunks_Support_Version < NTDDI_WIN6)
+//Windows 8.1, Windows Vista [desktop apps | UWP apps]
+//Windows Server 2008 [desktop apps | UWP apps]
+
+EXTERN_C
+INT
+WINAPI
+InetPtonW(
+	_In_                                      INT             Family,
+	_In_                                      PCWSTR          pszAddrString,
+	_When_(Family == AF_INET, _Out_writes_bytes_(sizeof(IN_ADDR)))
+	_When_(Family == AF_INET6, _Out_writes_bytes_(sizeof(IN6_ADDR)))
+                                              PVOID           pAddrBuf
+	)
+{
+	if (auto pInetPtonW = try_get_InetPtonW())
+	{
+		return pInetPtonW(Family, pszAddrString, pAddrBuf);
+	}
+
+	typedef wchar_t Char;
+
+	if (nullptr == pszAddrString || nullptr == pAddrBuf)
+	{
+		WSASetLastError(WSAEFAULT);
+		return -1;
+	}
+
+	if (AF_INET == Family)
+	{
+		//IPv4
+		UCHAR IPAddress[4] = {};
+
+		int i = 0;
+		for (; i != _countof(IPAddress); )
+		{
+			auto& IPNum = IPAddress[i++];
+
+			auto Start = pszAddrString;
+			for (; *Start && *Start != Char('.'); ++Start)
+			{
+				auto& Ch = *Start;
+
+				//必须是0~9数字
+				if (Ch >= Char('0') && Ch <= Char('9'))
+				{
+					auto NewNum = IPNum * 10ul + (Ch & 0x0Ful);
+					if (NewNum > 0xFF)
+					{
+						//不能大于255
+						return 0;
+					}
+
+					IPNum = (UCHAR)NewNum;
+				}
+				else
+				{
+					return 0;
+				}
+			}
+
+			//
+			if (Start == pszAddrString)
+				return 0;
+
+			pszAddrString = Start;
+
+			if (*pszAddrString == Char('\0'))
+				break;
+			else
+				++pszAddrString;
+		}
+
+		//未正常截断
+		if (i != _countof(IPAddress) || *pszAddrString != Char('\0'))
+			return 0;
+
+
+		((IN_ADDR *)pAddrBuf)->S_un.S_addr = *(ULONG*)IPAddress;
+
+		return 1;
+	}
+	else if (AF_INET6 == Family)
+	{
+		//IPv6
+
+		IN6_ADDR IPAddress;
+
+		int i = 0;
+		int InsertIndex = -1;
+
+		for (; i != _countof(IPAddress.u.Word) && *pszAddrString; )
+		{
+			if (pszAddrString[0] == Char(':') && pszAddrString[1] == Char(':'))
+			{
+				//缩进只能有一次
+				if (InsertIndex != -1)
+					return 0;
+
+
+				InsertIndex = i;
+
+				pszAddrString += 2;
+				continue;
+			}
+
+			auto& IPNum = IPAddress.u.Word[i++];
+			IPNum = 0;
+
+			auto Start = pszAddrString;
+			for (; *Start && *Start != Char(':'); ++Start)
+			{
+				auto& Ch = *Start;
+
+
+				unsigned int NewNum;
+
+				//0~9数字
+				if (Ch >= Char('0') && Ch <= Char('9'))
+				{
+					NewNum = Ch & 0x0Ful;
+				}
+				else if (Ch >= Char('a') && Ch <= Char('f'))
+				{
+					NewNum = Ch - Char('a') + 10;
+				}
+				else if (Ch >= Char('A') && Ch <= Char('F'))
+				{
+					NewNum = Ch - Char('A') + 10;
+				}
+				else
+				{
+					//无法识别
+					return 0;
+				}
+
+				NewNum = ((unsigned int)IPNum << 4) | NewNum;
+
+				if (NewNum > 0xFFFF)
+				{
+					//不能大于255
+					return 0;
+				}
+
+				IPNum = NewNum;
+			}
+
+
+			//截断错误
+			if (Start == pszAddrString)
+			{
+				return 0;
+			}
+
+
+			IPNum = _byteswap_ushort(IPNum);
+
+			pszAddrString = Start;
+
+			if (*pszAddrString == Char('\0'))
+			{
+				break;
+			}
+			else if (pszAddrString[1] == Char(':'))
+			{
+			}
+			else
+			{
+				++pszAddrString;
+			}
+		}
+
+
+		//未正常截断
+		if (*pszAddrString != Char('\0'))
+		{
+			return 0;
+		}
+		else if (i != _countof(IPAddress.u.Word) && InsertIndex == -1)
+		{
+			return 0;
+		}
+		else
+		{
+			if (InsertIndex == -1)
+			{
+				*(IN6_ADDR*)pAddrBuf = IPAddress;
+			}
+			else
+			{
+				//先复制头
+
+				auto j = 0;
+				for (; j != InsertIndex; ++j)
+				{
+					((IN6_ADDR*)pAddrBuf)->u.Word[j] = IPAddress.u.Word[j];
+				}
+
+				//补充中间 0
+				for (const auto Count = _countof(IPAddress.u.Word) - i + j; j != Count; ++j)
+				{
+					((IN6_ADDR*)pAddrBuf)->u.Word[j] = 0;
+				}
+
+				//复制小尾巴
+				for (; j != _countof(IPAddress.u.Word); ++j, ++InsertIndex)
+				{
+					((IN6_ADDR*)pAddrBuf)->u.Word[j] = IPAddress.u.Word[InsertIndex];
+				}
+			}
+			return 1;
+		}
+	}
+	else
+	{
+		WSASetLastError(WSAEAFNOSUPPORT);
+		return -1;
+	}
+}
+
+_LCRT_DEFINE_IAT_SYMBOL(InetPtonW, _12);
+
+#endif
+
+
+#if (YY_Thunks_Support_Version < NTDDI_WIN6)
+//Windows 8.1, Windows Vista [desktop apps | UWP apps]
+//Windows Server 2008 [desktop apps | UWP apps]
+
+EXTERN_C
+PCSTR
+WINAPI
+inet_ntop(
+	_In_                                INT             Family,
+	_In_                                const VOID *    pAddr,
+	_Out_writes_(StringBufSize)         PSTR            pStringBuf,
+	_In_                                size_t          StringBufSize
+	)
+{
+	if (auto pinet_ntop = try_get_inet_ntop())
+	{
+		return pinet_ntop(Family, pAddr, pStringBuf, StringBufSize);
+	}
+
+	NTSTATUS WSAError = ERROR_SUCCESS;
+
+	if (pAddr == nullptr || pStringBuf == nullptr)
+	{
+		WSAError = ERROR_INVALID_PARAMETER;
+	}
+	else
+	{
+		char BufferTemp[64];
+		auto szString = pStringBuf;
+		size_t cchString = 0;
+
+		constexpr const char Hex[] = "0123456789abcdef";
+
+
+		if (AF_INET == Family)
+		{
+			//IPv4
+			if (StringBufSize < 16)
+			{
+				szString = BufferTemp;
+			}
+
+			auto& IPv4 = *((unsigned char(*)[4])pAddr);
+
+			for (int i = 0; i != _countof(IPv4); ++i)
+			{
+				auto Num = IPv4[i];
+				if (Num < 10)
+				{
+					//1 位
+					szString[cchString++] = Hex[Num];
+				}
+				else if (Num < 100)
+				{
+					//2 位
+					szString[cchString++] = Hex[Num / 10];
+					szString[cchString++] = Hex[Num % 10];
+				}
+				else
+				{
+					//3 位
+					szString[cchString++] = Hex[Num / 100];
+					szString[cchString++] = Hex[(Num / 10) % 10];
+					szString[cchString++] = Hex[Num % 10];
+				}
+
+				szString[cchString++] = '.';
+			}
+
+			--cchString;
+		}
+		else if (AF_INET6 == Family)
+		{
+			//IPv6
+			if (StringBufSize < 46)
+			{
+				szString = BufferTemp;
+			}
+
+			auto& IPv6 = ((const IN6_ADDR*)pAddr)->u.Word;
+
+			int ZeroIndex = -1;
+			int ZeroCount = 1;
+
+			//统计 连续 0个数最多的情况
+			for (int i = 0; i != _countof(IPv6);)
+			{
+				auto j = i;
+
+				for (; j != _countof(IPv6) && IPv6[j] == 0; ++j);
+
+				auto Count = j - i;
+
+				if (Count)
+				{
+					if (Count > ZeroCount)
+					{
+						ZeroCount = Count;
+						ZeroIndex = i;
+					}
+
+					i = j;
+				}
+				else
+				{
+					++i;
+				}
+			}
+
+
+			for (int i = 0; i != _countof(IPv6);)
+			{
+				if (ZeroIndex == i)
+				{
+					if (i == 0)
+					{
+						szString[cchString++] = ':';
+					}
+
+					szString[cchString++] = ':';
+					i += ZeroCount;
+				}
+				else
+				{
+					auto Num = _byteswap_ushort(IPv6[i++]);
+
+					if (Num <= 0xF)
+					{
+						//1 位
+						szString[cchString++] = Hex[Num];
+					}
+					else if (Num <= 0xFF)
+					{
+						//2 位
+						szString[cchString++] = Hex[Num >> 4];
+						szString[cchString++] = Hex[Num & 0x0F];
+					}
+					else if (Num <= 0xFFF)
+					{
+						//3 位
+						szString[cchString++] = Hex[(Num >> 8)];
+
+						szString[cchString++] = Hex[(Num >> 4) & 0x0F];
+						szString[cchString++] = Hex[(Num >> 0) & 0x0F];
+					}
+					else
+					{
+						//4位
+						szString[cchString++] = Hex[(Num >> 12)];
+						szString[cchString++] = Hex[(Num >> 8) & 0x0F];
+
+						szString[cchString++] = Hex[(Num >> 4) & 0x0F];
+						szString[cchString++] = Hex[(Num >> 0) & 0x0F];
+					}
+
+					if (i != _countof(IPv6))
+						szString[cchString++] = ':';
+				}
+			}
+		}
+		else
+		{
+			WSAError = WSAEAFNOSUPPORT;
+		}
+
+		if (WSAError == ERROR_SUCCESS)
+		{
+			if (cchString >= StringBufSize)
+			{
+				WSAError = ERROR_INVALID_PARAMETER;
+			}
+			else
+			{
+				if (szString != BufferTemp)
+				{
+					//缓冲区不足
+
+					memcpy(pStringBuf, szString, sizeof(szString[0]) * cchString);
+				}
+
+				pStringBuf[cchString] = '\0';
+
+				return pStringBuf;
+			}
+		}
+	}
+
+
+	WSASetLastError(WSAError);
+	return nullptr;
+}
+
+_LCRT_DEFINE_IAT_SYMBOL(inet_ntop, _16);
+
+#endif
+
+
+#if (YY_Thunks_Support_Version < NTDDI_WIN6)
+//Windows 8.1, Windows Vista [desktop apps | UWP apps]
+//Windows Server 2008 [desktop apps | UWP apps]
+
+EXTERN_C
+PCWSTR
+WINAPI
+InetNtopW(
+	_In_                                INT             Family,
+	_In_                                const VOID *    pAddr,
+	_Out_writes_(StringBufSize)         PWSTR           pStringBuf,
+	_In_                                size_t          StringBufSize
+	)
+{
+	if (auto pInetNtopW = try_get_InetNtopW())
+	{
+		return pInetNtopW(Family, pAddr, pStringBuf, StringBufSize);
+	}
+
+	NTSTATUS WSAError = ERROR_SUCCESS;
+
+	if (pAddr == nullptr || pStringBuf == nullptr)
+	{
+		WSAError = ERROR_INVALID_PARAMETER;
+	}
+	else
+	{
+		wchar_t BufferTemp[64];
+		auto szString = pStringBuf;
+		size_t cchString = 0;
+
+		constexpr const char Hex[] = "0123456789abcdef";
+
+
+		if (AF_INET == Family)
+		{
+			//IPv4
+			if (StringBufSize < 16)
+			{
+				szString = BufferTemp;
+			}
+
+			auto& IPv4 = *((unsigned char(*)[4])pAddr);
+
+			for (int i = 0; i != _countof(IPv4); ++i)
+			{
+				auto Num = IPv4[i];
+				if (Num < 10)
+				{
+					//1 位
+					szString[cchString++] = Hex[Num];
+				}
+				else if (Num < 100)
+				{
+					//2 位
+					szString[cchString++] = Hex[Num / 10];
+					szString[cchString++] = Hex[Num % 10];
+				}
+				else
+				{
+					//3 位
+					szString[cchString++] = Hex[Num / 100];
+					szString[cchString++] = Hex[(Num / 10) % 10];
+					szString[cchString++] = Hex[Num % 10];
+				}
+
+				szString[cchString++] = '.';
+			}
+
+			--cchString;
+		}
+		else if (AF_INET6 == Family)
+		{
+			//IPv6
+			if (StringBufSize < 46)
+			{
+				szString = BufferTemp;
+			}
+
+			auto& IPv6 = ((const IN6_ADDR*)pAddr)->u.Word;
+
+			int ZeroIndex = -1;
+			int ZeroCount = 1;
+
+			//统计 连续 0个数最多的情况
+			for (int i = 0; i != _countof(IPv6);)
+			{
+				auto j = i;
+
+				for (; j != _countof(IPv6) && IPv6[j] == 0; ++j);
+
+				auto Count = j - i;
+
+				if (Count)
+				{
+					if (Count > ZeroCount)
+					{
+						ZeroCount = Count;
+						ZeroIndex = i;
+					}
+
+					i = j;
+				}
+				else
+				{
+					++i;
+				}
+			}
+
+
+			for (int i = 0; i != _countof(IPv6);)
+			{
+				if (ZeroIndex == i)
+				{
+					if (i == 0)
+					{
+						szString[cchString++] = ':';
+					}
+
+					szString[cchString++] = ':';
+					i += ZeroCount;
+				}
+				else
+				{
+					auto Num = _byteswap_ushort(IPv6[i++]);
+
+					if (Num <= 0xF)
+					{
+						//1 位
+						szString[cchString++] = Hex[Num];
+					}
+					else if (Num <= 0xFF)
+					{
+						//2 位
+						szString[cchString++] = Hex[Num >> 4];
+						szString[cchString++] = Hex[Num & 0x0F];
+					}
+					else if (Num <= 0xFFF)
+					{
+						//3 位
+						szString[cchString++] = Hex[(Num >> 8)];
+
+						szString[cchString++] = Hex[(Num >> 4) & 0x0F];
+						szString[cchString++] = Hex[(Num >> 0) & 0x0F];
+					}
+					else
+					{
+						//4位
+						szString[cchString++] = Hex[(Num >> 12)];
+						szString[cchString++] = Hex[(Num >> 8) & 0x0F];
+
+						szString[cchString++] = Hex[(Num >> 4) & 0x0F];
+						szString[cchString++] = Hex[(Num >> 0) & 0x0F];
+					}
+
+					if (i != _countof(IPv6))
+						szString[cchString++] = ':';
+				}
+			}
+		}
+		else
+		{
+			WSAError = WSAEAFNOSUPPORT;
+		}
+
+		if (WSAError == ERROR_SUCCESS)
+		{
+			if (cchString >= StringBufSize)
+			{
+				WSAError = ERROR_INVALID_PARAMETER;
+			}
+			else
+			{
+				if (szString != BufferTemp)
+				{
+					//缓冲区不足
+
+					memcpy(pStringBuf, szString, sizeof(szString[0]) * cchString);
+				}
+
+				pStringBuf[cchString] = '\0';
+
+				return pStringBuf;
+			}
+		}
+	}
+
+
+	WSASetLastError(WSAError);
+	return nullptr;
+}
+
+_LCRT_DEFINE_IAT_SYMBOL(InetNtopW, _16);
+
+#endif
+
+
+#if (YY_Thunks_Support_Version < NTDDI_WINXPSP2)
+//Windows Vista, Windows XP Professional x64 Edition, Windows XP with SP2 [desktop apps only]
+//Windows Server 2003 [desktop apps only]
+
+EXTERN_C
+BOOL
+WINAPI
+GetNumaHighestNodeNumber(
+    _Out_ PULONG HighestNodeNumber
+    )
+{
+	if (auto pGetNumaHighestNodeNumber = try_get_GetNumaHighestNodeNumber())
+	{
+		return pGetNumaHighestNodeNumber(HighestNodeNumber);
+	}
+
+	//不支持时始终假定只有一个NUMA节点
+	*HighestNodeNumber = 0;
+
+	return TRUE;
+}
+
+_LCRT_DEFINE_IAT_SYMBOL(GetNumaHighestNodeNumber, _4);
+
+#endif
+
+
+#if (YY_Thunks_Support_Version < NTDDI_WIN7)
+//Windows 7 [desktop apps | UWP apps]
+//Windows Server 2008 R2 [desktop apps | UWP apps]
+
+EXTERN_C
+VOID
+WINAPI
+RaiseFailFastException(
+    _In_opt_ PEXCEPTION_RECORD pExceptionRecord,
+    _In_opt_ PCONTEXT pContextRecord,
+    _In_ DWORD dwFlags
+    )
+{
+	if (auto pRaiseFailFastException = try_get_RaiseFailFastException())
+	{
+		return pRaiseFailFastException(pExceptionRecord, pContextRecord, dwFlags);
+	}
+
+	//直接结束进程
+	TerminateProcess(NtGetCurrentProcess(), pExceptionRecord ? pExceptionRecord->ExceptionCode : STATUS_FAIL_FAST_EXCEPTION);
+}
+
+_LCRT_DEFINE_IAT_SYMBOL(RaiseFailFastException, _12);
+
+#endif
+
+
+#if (YY_Thunks_Support_Version < NTDDI_WS03)
+//Windows Vista [desktop apps | UWP apps]
+//Windows Server 2003 [desktop apps | UWP apps]
+
+//感谢 过客 提供
+EXTERN_C
+DWORD
+WINAPI
+GetThreadId(
+    _In_ HANDLE Thread
+    )
+{
+	if (auto pGetThreadId = try_get_GetThreadId())
+	{
+		return pGetThreadId(Thread);
+	}
+	else if (auto pNtQueryInformationThread = try_get_NtQueryInformationThread())
+	{
+		THREAD_BASIC_INFORMATION ThreadBasicInfo;
+
+		auto Status = pNtQueryInformationThread(Thread, ThreadBasicInformation, &ThreadBasicInfo, sizeof(ThreadBasicInfo), nullptr);
+
+		if (Status < 0)
+		{
+			internal::BaseSetLastNTError(Status);
+			return 0;
+		}
+		else
+		{
+			return (DWORD)ThreadBasicInfo.ClientId.UniqueThread;
+		}
+	}
+	else
+	{
+		SetLastError(ERROR_CALL_NOT_IMPLEMENTED);
+		return 0;
+	}
+}
+
+_LCRT_DEFINE_IAT_SYMBOL(GetThreadId, _4);
+
+#endif
+
+
+#if (YY_Thunks_Support_Version < NTDDI_WS03)
+//Windows Vista [desktop apps | UWP apps]
+//Windows Server 2003 [desktop apps | UWP apps]
+
+EXTERN_C
+DWORD
+WINAPI
+GetProcessIdOfThread(
+    _In_ HANDLE Thread
+    )
+{
+	if (auto pGetProcessIdOfThread = try_get_GetProcessIdOfThread())
+	{
+		return pGetProcessIdOfThread(Thread);
+	}
+	else if (auto pNtQueryInformationThread = try_get_NtQueryInformationThread())
+	{
+		THREAD_BASIC_INFORMATION ThreadBasicInfo;
+
+		auto Status = pNtQueryInformationThread(Thread, ThreadBasicInformation, &ThreadBasicInfo, sizeof(ThreadBasicInfo), nullptr);
+
+		if (Status < 0)
+		{
+			internal::BaseSetLastNTError(Status);
+			return 0;
+		}
+		else
+		{
+			return (DWORD)ThreadBasicInfo.ClientId.UniqueProcess;
+		}
+	}
+	else
+	{
+		SetLastError(ERROR_CALL_NOT_IMPLEMENTED);
+		return 0;
+	}
+}
+
+_LCRT_DEFINE_IAT_SYMBOL(GetProcessIdOfThread, _4);
+
+#endif
+
+
+#if (YY_Thunks_Support_Version < NTDDI_WINXPSP1)
+//Windows Vista, Windows XP with SP1 [desktop apps | UWP apps]
+//Windows Server 2003 [desktop apps | UWP apps]
+
+EXTERN_C
+DWORD
+WINAPI
+GetProcessId(
+    _In_ HANDLE Process
+    )
+{
+	if (auto pGetProcessId = try_get_GetProcessId())
+	{
+		return pGetProcessId(Process);
+	}
+	else if (auto pNtQueryInformationProcess = try_get_NtQueryInformationProcess())
+	{
+		PROCESS_BASIC_INFORMATION ProcessBasicInfo;
+
+		auto Status = pNtQueryInformationProcess(Process, ProcessBasicInformation, &ProcessBasicInfo, sizeof(ProcessBasicInfo), nullptr);
+
+		if (Status < 0)
+		{
+			internal::BaseSetLastNTError(Status);
+			return 0;
+		}
+		else
+		{
+			return (DWORD)ProcessBasicInfo.UniqueProcessId;
+		}
+	}
+	else
+	{
+		SetLastError(ERROR_CALL_NOT_IMPLEMENTED);
+		return 0;
+	}
+}
+
+_LCRT_DEFINE_IAT_SYMBOL(GetProcessId, _4);
+
+#endif
+
+
+#if (YY_Thunks_Support_Version < NTDDI_WIN6)
+//Windows Vista [desktop apps only]
+//Windows Server 2008 [desktop apps only]
+
+EXTERN_C
+BOOL
+WINAPI
+QueryThreadCycleTime(
+    _In_ HANDLE ThreadHandle,
+    _Out_ PULONG64 CycleTime
+    )
+{
+	if (auto pQueryThreadCycleTime = try_get_QueryThreadCycleTime())
+	{
+		return pQueryThreadCycleTime(ThreadHandle, CycleTime);
+	}
+	
+
+	//GetThreadTimes凑合用吧……
+	FILETIME CreationTime;
+	FILETIME ExitTime;
+	FILETIME KernelTime;
+	FILETIME UserTime;
+
+	if (!GetThreadTimes(ThreadHandle, &CreationTime, &ExitTime, &KernelTime, &UserTime))
+	{
+		return FALSE;
+	}
+
+	((ULARGE_INTEGER*)CycleTime)->LowPart = UserTime.dwLowDateTime;
+	((ULARGE_INTEGER*)CycleTime)->HighPart = UserTime.dwHighDateTime;
+
+	return TRUE;
+}
+
+_LCRT_DEFINE_IAT_SYMBOL(QueryThreadCycleTime, _8);
+
+#endif
+
+
+#if (YY_Thunks_Support_Version < NTDDI_WIN6)
+//Windows Vista [desktop apps only]
+//Windows Server 2008 [desktop apps only]
+
+EXTERN_C
+BOOL
+WINAPI
+QueryProcessCycleTime(
+    _In_ HANDLE ProcessHandle,
+    _Out_ PULONG64 CycleTime
+    )
+{
+	if (auto pQueryProcessCycleTime = try_get_QueryProcessCycleTime())
+	{
+		return pQueryProcessCycleTime(ProcessHandle, CycleTime);
+	}
+
+	//GetProcessTimes凑合用吧……
+	FILETIME CreationTime;
+	FILETIME ExitTime;
+	FILETIME KernelTime;
+	FILETIME UserTime;
+
+	if (!GetProcessTimes(ProcessHandle, &CreationTime, &ExitTime, &KernelTime, &UserTime))
+	{
+		return FALSE;
+	}
+
+	((ULARGE_INTEGER*)CycleTime)->LowPart = UserTime.dwLowDateTime;
+	((ULARGE_INTEGER*)CycleTime)->HighPart = UserTime.dwHighDateTime;
+
+	return TRUE;
+}
+
+_LCRT_DEFINE_IAT_SYMBOL(QueryProcessCycleTime, _8);
+
+#endif
+
+
+#if (YY_Thunks_Support_Version < NTDDI_WIN6)
+//Windows Vista [desktop apps only]
+//Windows Server 2008 [desktop apps only]
+
+EXTERN_C
+BOOL
+WINAPI
+EnumProcessModulesEx(
+    _In_ HANDLE hProcess,
+    _Out_writes_bytes_(cb) HMODULE* lphModule,
+    _In_ DWORD cb,
+    _Out_ LPDWORD lpcbNeeded,
+    _In_ DWORD dwFilterFlag
+    )
+{
+	if (auto pEnumProcessModulesEx = try_get_EnumProcessModulesEx())
+	{
+		return pEnumProcessModulesEx(hProcess, lphModule, cb, lpcbNeeded, dwFilterFlag);
+	}
+
+	return EnumProcessModules(hProcess, lphModule, cb, lpcbNeeded);
+}
+
+_LCRT_DEFINE_IAT_SYMBOL(EnumProcessModulesEx, _20);
+
+#endif
+
+
+#if (YY_Thunks_Support_Version < NTDDI_WIN6)
+//Windows Vista [desktop apps only]
+//Windows Server 2008 [desktop apps only]
+
+EXTERN_C
+BOOL
+WINAPI
+GetWsChangesEx(
+    _In_ HANDLE hProcess,
+    _Out_writes_bytes_to_(*cb, *cb) PPSAPI_WS_WATCH_INFORMATION_EX lpWatchInfoEx,
+    _Inout_ PDWORD cb
+    )
+{
+	if (auto pGetWsChangesEx = try_get_GetWsChangesEx())
+	{
+		return pGetWsChangesEx(hProcess, lpWatchInfoEx, cb);
+	}
+
+	PPSAPI_WS_WATCH_INFORMATION pWatchInfo = nullptr;
+	DWORD cbWatchInfo = 1024 * sizeof(pWatchInfo[0]);
+	const auto ProcessHeap = ((TEB*)NtCurrentTeb())->ProcessEnvironmentBlock->ProcessHeap;
+	LSTATUS lStatus = ERROR_SUCCESS;
+
+	for (;;)
+	{
+		if (pWatchInfo)
+		{
+			cbWatchInfo *= 2;
+			
+			auto pNewWatchInfo = (PPSAPI_WS_WATCH_INFORMATION)HeapReAlloc(ProcessHeap, 0, pWatchInfo, cbWatchInfo);
+
+			if (!pNewWatchInfo)
+			{
+				lStatus = ERROR_OUTOFMEMORY;
+				break;
+			}
+
+			pWatchInfo = pNewWatchInfo;
+		}
+		else
+		{
+			pWatchInfo = (PPSAPI_WS_WATCH_INFORMATION)HeapAlloc(ProcessHeap, 0, cbWatchInfo);
+			if (!pWatchInfo)
+			{
+				lStatus = ERROR_OUTOFMEMORY;
+				break;
+			}
+		}
+
+		if (!GetWsChanges(hProcess, pWatchInfo, cbWatchInfo))
+		{
+			lStatus = GetLastError();
+
+			if (lStatus == ERROR_INSUFFICIENT_BUFFER)
+			{
+				continue;
+
+			}
+			else
+			{
+				break;
+			}
+		}
+
+		//确定实际个数
+		const auto pWatchInfoMax = (PPSAPI_WS_WATCH_INFORMATION)((byte*)pWatchInfo + cbWatchInfo);
+		auto pWatchInfoTerminated = pWatchInfo;
+		for (; pWatchInfoTerminated < pWatchInfoMax && pWatchInfoTerminated->FaultingPc != nullptr; pWatchInfoTerminated += sizeof(pWatchInfoTerminated[0]));
+
+		auto ccWatchInfo = pWatchInfoTerminated - pWatchInfo;
+
+		auto cbWatchInfoExRequest = (ccWatchInfo + 1) * sizeof(lpWatchInfoEx[0]);
+
+		auto cbBuffer = *cb;
+		*cb = cbWatchInfoExRequest;
+
+		if (cbBuffer < cbWatchInfoExRequest)
+		{
+			lStatus = ERROR_INSUFFICIENT_BUFFER;
+			break;
+		}
+
+
+		//复制到新缓冲区
+		for (int i = 0; i != ccWatchInfo; ++i)
+		{
+			lpWatchInfoEx[i].BasicInfo = pWatchInfo[i];
+			lpWatchInfoEx[i].FaultingThreadId = 0;
+			lpWatchInfoEx[i].Flags = 0;
+		}
+		
+		//插入终止标记
+		lpWatchInfoEx[ccWatchInfo] = PSAPI_WS_WATCH_INFORMATION_EX{};
+
+		lStatus = ERROR_SUCCESS;
+		break;
+	}
+
+	if (pWatchInfo)
+	{
+		HeapFree(ProcessHeap, 0, pWatchInfo);
+	}
+	
+	if (lStatus == ERROR_SUCCESS)
+	{
+		return TRUE;
+	}
+	else
+	{
+		SetLastError(lStatus);
+		return FALSE;
+	}
+}
+
+_LCRT_DEFINE_IAT_SYMBOL(GetWsChangesEx, _12);
+
+#endif
+
+
+#if (YY_Thunks_Support_Version < NTDDI_WS03SP1)
+//Windows Vista, Windows XP Professional x64 Edition [desktop apps only]
+//Windows Server 2008, Windows Server 2003 with SP1 [desktop apps only]
+
+EXTERN_C
+BOOL
+WINAPI
+QueryWorkingSetEx(
+    _In_ HANDLE hProcess,
+    _Out_writes_bytes_(cb) PVOID pv,
+    _In_ DWORD cb
+    )
+{
+	if (const auto pQueryWorkingSetEx = try_get_QueryWorkingSetEx())
+	{
+		return pQueryWorkingSetEx(hProcess, pv, cb);
+	}
+	else
+	{
+		SetLastError(ERROR_INVALID_FUNCTION);
+		return FALSE;
+	}
+}
+
+_LCRT_DEFINE_IAT_SYMBOL(QueryWorkingSetEx, _12);
+
+#endif
+
+#if (YY_Thunks_Support_Version < NTDDI_WIN6)
+//Windows Vista [desktop apps only]
+//Windows Server 2008 [desktop apps only]
+
+EXTERN_C
+BOOL
+WINAPI
+QueryFullProcessImageNameW(
+    _In_ HANDLE hProcess,
+    _In_ DWORD dwFlags,
+    _Out_writes_to_(*lpdwSize, *lpdwSize) LPWSTR lpExeName,
+    _Inout_ PDWORD lpdwSize
+    )
+{
+	if (auto pQueryFullProcessImageNameW = try_get_QueryFullProcessImageNameW())
+	{
+		return pQueryFullProcessImageNameW(hProcess, dwFlags, lpExeName, lpdwSize);
+	}
+
+	auto dwSize = *lpdwSize;
+
+	if (dwFlags & PROCESS_NAME_NATIVE)
+	{
+		dwSize = GetProcessImageFileNameW(hProcess, lpExeName, dwSize);
+	}
+	else
+	{
+		dwSize = GetModuleFileNameExW(hProcess, nullptr, lpExeName, dwSize);
+	}
+
+	if (dwSize)
+	{
+		*lpdwSize = dwSize;
+		return TRUE;
+	}
+	else
+	{
+		return FALSE;
+	}
+}
+
+_LCRT_DEFINE_IAT_SYMBOL(QueryFullProcessImageNameW, _16);
+
+#endif
+
+
+#if (YY_Thunks_Support_Version < NTDDI_WIN6)
+//Windows Vista [desktop apps only]
+//Windows Server 2008 [desktop apps only]
+
+EXTERN_C
+BOOL
+WINAPI
+QueryFullProcessImageNameA(
+    _In_ HANDLE hProcess,
+    _In_ DWORD dwFlags,
+    _Out_writes_to_(*lpdwSize, *lpdwSize) LPSTR lpExeName,
+    _Inout_ PDWORD lpdwSize
+    )
+{
+	if (auto pQueryFullProcessImageNameA = try_get_QueryFullProcessImageNameA())
+	{
+		return pQueryFullProcessImageNameA(hProcess, dwFlags, lpExeName, lpdwSize);
+	}
+
+	auto dwSize = *lpdwSize;
+
+	if (dwFlags & PROCESS_NAME_NATIVE)
+	{
+		dwSize = GetProcessImageFileNameA(hProcess, lpExeName, dwSize);
+	}
+	else
+	{
+		dwSize = GetModuleFileNameExA(hProcess, nullptr, lpExeName, dwSize);
+	}
+
+	if (dwSize)
+	{
+		*lpdwSize = dwSize;
+		return TRUE;
+	}
+	else
+	{
+		return FALSE;
+	}
+}
+
+_LCRT_DEFINE_IAT_SYMBOL(QueryFullProcessImageNameA, _16);
+
+#endif
+
+
+#if (YY_Thunks_Support_Version < NTDDI_WIN8)
+//Windows 8 [desktop apps | UWP apps]
+//Windows Server 2012 [desktop apps | UWP apps]
+
+EXTERN_C
+HANDLE
+WINAPI
+CreateFile2(
+    _In_ LPCWSTR lpFileName,
+    _In_ DWORD dwDesiredAccess,
+    _In_ DWORD dwShareMode,
+    _In_ DWORD dwCreationDisposition,
+    _In_opt_ LPCREATEFILE2_EXTENDED_PARAMETERS pCreateExParams
+    )
+{
+	if (auto pCreateFile2 = try_get_CreateFile2())
+	{
+		return pCreateFile2(lpFileName, dwDesiredAccess, dwShareMode, dwCreationDisposition, pCreateExParams);
+	}
+
+	DWORD dwFlagsAndAttributes = 0;
+	LPSECURITY_ATTRIBUTES lpSecurityAttributes = nullptr;
+	HANDLE hTemplateFile = nullptr;
+
+	if (pCreateExParams)
+	{
+		if (pCreateExParams->dwSize < sizeof(*pCreateExParams))
+		{
+			SetLastError(ERROR_INVALID_PARAMETER);
+			return INVALID_HANDLE_VALUE;
+		}
+
+		dwFlagsAndAttributes = pCreateExParams->dwFileAttributes | pCreateExParams->dwFileFlags | pCreateExParams->dwSecurityQosFlags;
+		lpSecurityAttributes = pCreateExParams->lpSecurityAttributes;
+		hTemplateFile        = pCreateExParams->hTemplateFile;
+	}
+	 
+	return CreateFileW(lpFileName, dwDesiredAccess, dwShareMode, lpSecurityAttributes, dwCreationDisposition, dwFlagsAndAttributes, hTemplateFile);
+}
+
+_LCRT_DEFINE_IAT_SYMBOL(CreateFile2, _20);
+
+#endif
+
+
+#if (YY_Thunks_Support_Version < NTDDI_WIN6)
+//Windows Vista [desktop apps | UWP apps]
+//Windows Server 2008 [desktop apps | UWP apps]
+
+EXTERN_C
+HANDLE
+WINAPI
+CreateEventExW(
+    _In_opt_ LPSECURITY_ATTRIBUTES lpEventAttributes,
+    _In_opt_ LPCWSTR lpName,
+    _In_ DWORD dwFlags,
+    _In_ DWORD dwDesiredAccess
+    )
+{
+	if (auto pCreateEventExW = try_get_CreateEventExW())
+	{
+		return pCreateEventExW(lpEventAttributes, lpName, dwFlags, dwDesiredAccess);
+	}
+
+	return CreateEventW(lpEventAttributes, dwFlags & CREATE_EVENT_MANUAL_RESET, dwFlags & CREATE_EVENT_INITIAL_SET, lpName);
+}
+
+_LCRT_DEFINE_IAT_SYMBOL(CreateEventExW, _16);
+
+#endif
+
+
+#if (YY_Thunks_Support_Version < NTDDI_WIN6)
+//Windows Vista [desktop apps | UWP apps]
+//Windows Server 2008 [desktop apps | UWP apps]
+
+EXTERN_C
+HANDLE
+WINAPI
+CreateEventExA(
+    _In_opt_ LPSECURITY_ATTRIBUTES lpEventAttributes,
+    _In_opt_ LPCSTR lpName,
+    _In_ DWORD dwFlags,
+    _In_ DWORD dwDesiredAccess
+    )
+{
+	if (auto pCreateEventExA = try_get_CreateEventExA())
+	{
+		return pCreateEventExA(lpEventAttributes, lpName, dwFlags, dwDesiredAccess);
+	}
+
+	return CreateEventA(lpEventAttributes, dwFlags & CREATE_EVENT_MANUAL_RESET, dwFlags & CREATE_EVENT_INITIAL_SET, lpName);
+}
+
+_LCRT_DEFINE_IAT_SYMBOL(CreateEventExA, _16);
+
+#endif
+
+
+#if (YY_Thunks_Support_Version < NTDDI_WIN6)
+//Windows Vista [desktop apps | UWP apps]
+//Windows Server 2008 [desktop apps | UWP apps]
+
+EXTERN_C
+HANDLE
+WINAPI
+CreateMutexExW(
+    _In_opt_ LPSECURITY_ATTRIBUTES lpMutexAttributes,
+    _In_opt_ LPCWSTR lpName,
+    _In_ DWORD dwFlags,
+    _In_ DWORD dwDesiredAccess
+    )
+{
+	if (auto pCreateMutexExW = try_get_CreateMutexExW())
+	{
+		return pCreateMutexExW(lpMutexAttributes, lpName, dwFlags, dwDesiredAccess);
+	}
+
+	return CreateMutexW(lpMutexAttributes, dwFlags & CREATE_MUTEX_INITIAL_OWNER, lpName);
+}
+
+_LCRT_DEFINE_IAT_SYMBOL(CreateMutexExW, _16);
+
+#endif
+
+
+#if (YY_Thunks_Support_Version < NTDDI_WIN6)
+//Windows Vista [desktop apps | UWP apps]
+//Windows Server 2008 [desktop apps | UWP apps]
+
+EXTERN_C
+HANDLE
+WINAPI
+CreateMutexExA(
+    _In_opt_ LPSECURITY_ATTRIBUTES lpMutexAttributes,
+    _In_opt_ LPCSTR lpName,
+    _In_ DWORD dwFlags,
+    _In_ DWORD dwDesiredAccess
+    )
+{
+	if (auto pCreateMutexExA = try_get_CreateMutexExA())
+	{
+		return pCreateMutexExA(lpMutexAttributes, lpName, dwFlags, dwDesiredAccess);
+	}
+
+	return CreateMutexA(lpMutexAttributes, dwFlags & CREATE_MUTEX_INITIAL_OWNER, lpName);
+}
+
+_LCRT_DEFINE_IAT_SYMBOL(CreateMutexExA, _16);
+
+#endif
+
+
+#if (YY_Thunks_Support_Version < NTDDI_WIN6)
+//Windows Vista [desktop apps | UWP apps]
+//Windows Server 2008 [desktop apps | UWP apps]
+
+EXTERN_C
+HANDLE
+WINAPI
+CreateSemaphoreExW(
+    _In_opt_ LPSECURITY_ATTRIBUTES lpSemaphoreAttributes,
+    _In_ LONG lInitialCount,
+    _In_ LONG lMaximumCount,
+    _In_opt_ LPCWSTR lpName,
+    _Reserved_ DWORD dwFlags,
+    _In_ DWORD dwDesiredAccess
+    )
+{
+	if (auto pCreateSemaphoreExW = try_get_CreateSemaphoreExW())
+	{
+		return pCreateSemaphoreExW(lpSemaphoreAttributes, lInitialCount, lMaximumCount, lpName, dwFlags, dwDesiredAccess);
+	}
+
+	return CreateSemaphoreW(lpSemaphoreAttributes, lInitialCount, lMaximumCount, lpName);
+}
+
+_LCRT_DEFINE_IAT_SYMBOL(CreateSemaphoreExW, _24);
+
+#endif
+
+
+#if (YY_Thunks_Support_Version < NTDDI_WIN6)
+//Windows Vista [desktop apps | UWP apps]
+//Windows Server 2008 [desktop apps | UWP apps]
+
+EXTERN_C
+HANDLE
+WINAPI
+CreateWaitableTimerExW(
+    _In_opt_ LPSECURITY_ATTRIBUTES lpTimerAttributes,
+    _In_opt_ LPCWSTR lpTimerName,
+    _In_ DWORD dwFlags,
+    _In_ DWORD dwDesiredAccess
+    )
+{
+	if (auto pCreateWaitableTimerExW = try_get_CreateWaitableTimerExW())
+	{
+		return pCreateWaitableTimerExW(lpTimerAttributes, lpTimerName, dwFlags, dwDesiredAccess);
+	}
+
+	return CreateWaitableTimerW(lpTimerAttributes, dwFlags&CREATE_WAITABLE_TIMER_MANUAL_RESET, lpTimerName);
+}
+
+_LCRT_DEFINE_IAT_SYMBOL(CreateWaitableTimerExW, _16);
+
+#endif
+
+
+#if (YY_Thunks_Support_Version < NTDDI_WIN6)
+//Windows Vista [desktop apps only]
+//Windows Server 2008 [desktop apps only]
+
+EXTERN_C
+BOOL APIENTRY GetFileVersionInfoExW(
+    _In_ DWORD dwFlags,
+	_In_ LPCWSTR lpwstrFilename,
+	_Reserved_ DWORD dwHandle,
+	_In_ DWORD dwLen,
+	_Out_writes_bytes_(dwLen) LPVOID lpData
+    )
+{
+	if (auto pGetFileVersionInfoExW = try_get_GetFileVersionInfoExW())
+	{
+		return pGetFileVersionInfoExW(dwFlags, lpwstrFilename, dwHandle, dwLen, lpData);
+	}
+
+	return GetFileVersionInfoW(lpwstrFilename, dwHandle, dwLen, lpData);
+}
+
+_LCRT_DEFINE_IAT_SYMBOL(GetFileVersionInfoExW, _20);
+
+#endif
+
+
+#if (YY_Thunks_Support_Version < NTDDI_WIN6)
+//Windows Vista [desktop apps only]
+//Windows Server 2008 [desktop apps only]
+
+EXTERN_C
+BOOL APIENTRY GetFileVersionInfoExA(
+    _In_ DWORD dwFlags,
+    _In_ LPCSTR lpwstrFilename,
+    _Reserved_ DWORD dwHandle,
+    _In_ DWORD dwLen,
+    _Out_writes_bytes_(dwLen) LPVOID lpData
+    )
+{
+	if (auto pGetFileVersionInfoExA = try_get_GetFileVersionInfoExA())
+	{
+		return pGetFileVersionInfoExA(dwFlags, lpwstrFilename, dwHandle, dwLen, lpData);
+	}
+
+	return GetFileVersionInfoA(lpwstrFilename, dwHandle, dwLen, lpData);
+}
+
+_LCRT_DEFINE_IAT_SYMBOL(GetFileVersionInfoExA, _20);
+
+#endif
+
+
+#if (YY_Thunks_Support_Version < NTDDI_WIN6)
+//Windows Vista [desktop apps only]
+//Windows Server 2008 [desktop apps only]
+
+EXTERN_C
+DWORD
+APIENTRY
+GetFileVersionInfoSizeExW(
+	_In_ DWORD dwFlags,
+	_In_ LPCWSTR lpwstrFilename,
+	_Out_ LPDWORD lpdwHandle
+	)
+{
+	if (auto pGetFileVersionInfoSizeExW = try_get_GetFileVersionInfoSizeExW())
+	{
+		return pGetFileVersionInfoSizeExW(dwFlags, lpwstrFilename, lpdwHandle);
+	}
+
+	return GetFileVersionInfoSizeW(lpwstrFilename, lpdwHandle);
+}
+
+_LCRT_DEFINE_IAT_SYMBOL(GetFileVersionInfoSizeExW, _12);
+
+#endif
+
+
+#if (YY_Thunks_Support_Version < NTDDI_WIN6)
+//Windows Vista [desktop apps only]
+//Windows Server 2008 [desktop apps only]
+
+EXTERN_C
+DWORD
+APIENTRY
+GetFileVersionInfoSizeExA(
+	_In_ DWORD dwFlags,
+	_In_ LPCSTR lpwstrFilename,
+	_Out_ LPDWORD lpdwHandle
+	)
+{
+	if (auto pGetFileVersionInfoSizeExA = try_get_GetFileVersionInfoSizeExA())
+	{
+		return pGetFileVersionInfoSizeExA(dwFlags, lpwstrFilename, lpdwHandle);
+	}
+
+	return GetFileVersionInfoSizeA(lpwstrFilename, lpdwHandle);
+}
+
+_LCRT_DEFINE_IAT_SYMBOL(GetFileVersionInfoSizeExA, _12);
+
+#endif
+
+
+#if (YY_Thunks_Support_Version < NTDDI_WS03)
+//Windows Vista [desktop apps | UWP apps]
+//Windows Server 2003 [desktop apps | UWP apps]
+
+#pragma push_macro("InterlockedCompareExchange64")
+#undef InterlockedCompareExchange64
+EXTERN_C
+LONG64
+WINAPI
+InterlockedCompareExchange64(
+    _Inout_ _Interlocked_operand_ LONG64 volatile *Destination,
+    _In_ LONG64 ExChange,
+    _In_ LONG64 Comperand
+    )
+{
+	return _InterlockedCompareExchange64(Destination, ExChange, Comperand);
+}
+
+_LCRT_DEFINE_IAT_SYMBOL(InterlockedCompareExchange64, _20);
+#pragma pop_macro("InterlockedCompareExchange64")
+
+#endif
+
+
+#if (YY_Thunks_Support_Version < NTDDI_WIN7)
+//Windows 7 [desktop apps | UWP apps]
+//Windows Server 2008 R2 [desktop apps | UWP apps]
+
+EXTERN_C
+BOOL
+WINAPI
+SetThreadErrorMode(
+    _In_ DWORD dwNewMode,
+    _In_opt_ LPDWORD lpOldMode
+    )
+{
+	if (auto pSetThreadErrorMode = try_get_SetThreadErrorMode())
+	{
+		return pSetThreadErrorMode(dwNewMode, lpOldMode);
+	}
+
+	auto dwOldMode = SetErrorMode(dwNewMode);
+	if (lpOldMode)
+		*lpOldMode = dwOldMode;
+
+	return TRUE;
+}
+
+_LCRT_DEFINE_IAT_SYMBOL(SetThreadErrorMode, _8);
+
+#endif
+
+
+#if (YY_Thunks_Support_Version < NTDDI_WIN7)
+//Windows 7 [desktop apps | UWP apps]
+//Windows Server 2008 R2 [desktop apps | UWP apps]
+
+EXTERN_C
+DWORD
+WINAPI
+GetThreadErrorMode(
+    VOID
+    )
+{
+	if (auto pGetThreadErrorMode = try_get_GetThreadErrorMode())
+	{
+		return pGetThreadErrorMode();
+	}
+	
+	return GetErrorMode();
+}
+
+_LCRT_DEFINE_IAT_SYMBOL(GetThreadErrorMode, _0);
+
+#endif
+
+
+#if (YY_Thunks_Support_Version < NTDDI_VISTA)
+//Windows Vista [desktop apps only]
+//Windows Server 2008 [desktop apps only]
+
+EXTERN_C
+UINT
+WINAPI
+GetErrorMode(
+	VOID
+    )
+{
+	if (auto pGetErrorMode = try_get_GetErrorMode())
+	{
+		return pGetErrorMode();
+	}
+	else if (auto pNtQueryInformationProcess = try_get_NtQueryInformationProcess())
+	{
+		DWORD dwDefaultHardErrorMode;
+
+		auto Status = pNtQueryInformationProcess(NtCurrentProcess(), ProcessDefaultHardErrorMode, &dwDefaultHardErrorMode, sizeof(dwDefaultHardErrorMode), nullptr);
+
+		if (Status >= 0)
+		{
+			if (dwDefaultHardErrorMode & 0x00000001)
+			{
+				return dwDefaultHardErrorMode & 0xFFFFFFFE;
+			}
+			else
+			{
+				return dwDefaultHardErrorMode | 0x00000001;
+			}
+		}
+
+		internal::BaseSetLastNTError(Status);
+
+		return 0;
+	}
+	else
+	{
+		SetLastError(ERROR_CALL_NOT_IMPLEMENTED);
+		return 0;
+	}
+}
+
+_LCRT_DEFINE_IAT_SYMBOL(GetErrorMode, _0);
+
+#endif
+
+
+#if (YY_Thunks_Support_Version < NTDDI_VISTA)
+//Windows Vista [desktop apps | UWP apps]
+//Windows Server 2008 [desktop apps | UWP apps]
+
+EXTERN_C
+BOOL
+WINAPI
+CancelIoEx(
+    _In_ HANDLE hFile,
+    _In_opt_ LPOVERLAPPED lpOverlapped
+    )
+{
+	if (auto pCancelIoEx = try_get_CancelIoEx())
+	{
+		return pCancelIoEx(hFile, lpOverlapped);
+	}
+
+	//downlevel逻辑会把该文件所有IO动作给取消掉！凑合用吧。
+	return CancelIo(hFile);
+}
+
+_LCRT_DEFINE_IAT_SYMBOL(CancelIoEx, _8);
+
+#endif
+
+
+#if (YY_Thunks_Support_Version < NTDDI_VISTA)
+//Windows Vista [desktop apps | UWP apps]
+//Windows Server 2008 [desktop apps | UWP apps]
+
+EXTERN_C
+VOID
+WINAPI
+InitializeSRWLock(
+    _Out_ PSRWLOCK SRWLock
+    )
+{
+	*SRWLock = RTL_SRWLOCK_INIT;
+}
+
+_LCRT_DEFINE_IAT_SYMBOL(InitializeSRWLock, _4);
+
+#endif
+
+
+#if (YY_Thunks_Support_Version < NTDDI_VISTA)
+//Windows Vista [desktop apps | UWP apps]
+//Windows Server 2008 [desktop apps | UWP apps]
+
+EXTERN_C
+VOID
+WINAPI
+AcquireSRWLockExclusive(
+    _Inout_ PSRWLOCK SRWLock
+    )
+{
+	if (auto const pAcquireSRWLockExclusive = try_get_AcquireSRWLockExclusive())
+	{
+		return pAcquireSRWLockExclusive(SRWLock);
+	}
+
+	//尝试加锁一次
+#if defined(_WIN64)
+	auto OldBit = InterlockedBitTestAndSet64((volatile LONG_PTR*)SRWLock, 0);
+#else
+	auto OldBit = InterlockedBitTestAndSet((volatile LONG_PTR*)SRWLock, 0);
+#endif
+
+	if(OldBit == false)
+	{
+		//成功锁定
+		return;
+	}
+
+	for (;;)
+	{
+		auto SRWLockOld =  *(volatile LONG_PTR*)SRWLock;
+
+		if ((SRWLockOld&SRWLOCK_LOCKING)==0)
+		{
+			//尝试加锁
+			if (InterlockedCompareExchange((volatile size_t*)SRWLock, SRWLockOld | SRWLOCK_LOCKING, SRWLockOld) == SRWLockOld)
+			{
+				//成功加锁
+				return;
+			}
+
+			Sleep(0);
+		}
+		else
+		{
+			//锁本身处于锁定中……
+
+			//插入等待标记，阻止 Shared 进入
+			if((SRWLockOld & SRWLOCK_WAITING)==0)
+				InterlockedCompareExchange((volatile size_t*)SRWLock, SRWLockOld | SRWLOCK_WAITING, SRWLockOld);
+
+
+			//等待 10ms 继续尝试
+			Sleep(10);
+		}
+	}
+}
+
+_LCRT_DEFINE_IAT_SYMBOL(AcquireSRWLockExclusive, _4);
+
+#endif
+
+
+#if (YY_Thunks_Support_Version < NTDDI_WIN7)
+//Windows 7 [desktop apps | UWP apps]
+//Windows Server 2008 R2 [desktop apps | UWP apps]
+
+EXTERN_C
+BOOLEAN
+WINAPI
+TryAcquireSRWLockExclusive(
+    _Inout_ PSRWLOCK SRWLock
+    )
+{
+	if (auto const pTryAcquireSRWLockExclusive = try_get_TryAcquireSRWLockExclusive())
+	{
+		return pTryAcquireSRWLockExclusive(SRWLock);
+	}
+
+#if defined(_WIN64)
+	return InterlockedBitTestAndSet64((volatile LONG_PTR*)SRWLock, 0);
+#else
+	return InterlockedBitTestAndSet((volatile LONG_PTR*)SRWLock, 0);
+#endif
+}
+
+_LCRT_DEFINE_IAT_SYMBOL(TryAcquireSRWLockExclusive, _4);
+
+#endif
+
+
+#if (YY_Thunks_Support_Version < NTDDI_VISTA)
+//Windows Vista [desktop apps | UWP apps]
+//Windows Server 2008 [desktop apps | UWP apps]
+
+EXTERN_C
+VOID
+WINAPI
+ReleaseSRWLockExclusive(
+    _Inout_ PSRWLOCK SRWLock
+    )
+{
+	if (auto const pReleaseSRWLockExclusive = try_get_ReleaseSRWLockExclusive())
+	{
+		return pReleaseSRWLockExclusive(SRWLock);
+	}
+
+	for (;;)
+	{
+		auto OldSRWLock = *(volatile size_t*)SRWLock;
+
+		//解除锁的所有状态
+		if (InterlockedCompareExchange((volatile size_t*)SRWLock, size_t(0), OldSRWLock) == OldSRWLock)
+		{
+			break;
+		}
+		else
+		{
+			Sleep(0);
+		}
+	}
+}
+
+_LCRT_DEFINE_IAT_SYMBOL(ReleaseSRWLockExclusive, _4);
+
+#endif
+
+
+#if (YY_Thunks_Support_Version < NTDDI_VISTA)
+//Windows Vista [desktop apps | UWP apps]
+//Windows Server 2008 [desktop apps | UWP apps]
+
+EXTERN_C
+VOID
+WINAPI
+AcquireSRWLockShared(
+    _Inout_ PSRWLOCK SRWLock
+    )
+{
+	if (auto const pAcquireSRWLockShared = try_get_AcquireSRWLockShared())
+	{
+		return pAcquireSRWLockShared(SRWLock);
+	}
+
+	//尝试给全新的锁加锁	
+	auto OldSRWLock = InterlockedCompareExchange((volatile size_t*)SRWLock, size_t(0x11), 0);
+
+	//成功
+	if (OldSRWLock == size_t(0))
+	{
+		return;
+	}
+
+	for (;;)
+	{
+		if ((OldSRWLock & SRWLOCK_LOCKING) && ((OldSRWLock & SRWLOCK_WAITING) || (OldSRWLock & SRWLOCK_DATA_MARK) == size_t(0)))
+		{
+			//正在被锁定中 或者 独占锁尝试进入中
+			Sleep(10);
+		}
+		else if (InterlockedCompareExchange((volatile size_t*)SRWLock, (OldSRWLock + size_t(0x10)) | size_t(0x1), OldSRWLock) == OldSRWLock)
+		{
+			//锁定完成
+			return;
+		}
+		else
+		{
+			Sleep(0);
+		}
+		
+
+		OldSRWLock = *(volatile size_t*)SRWLock;
+	}
+}
+
+_LCRT_DEFINE_IAT_SYMBOL(AcquireSRWLockShared, _4);
+
+#endif
+
+
+#if (YY_Thunks_Support_Version < NTDDI_WIN7)
+//Windows 7 [desktop apps | UWP apps] 
+//Windows Server 2008 R2 [desktop apps | UWP apps]
+
+EXTERN_C
+BOOLEAN
+WINAPI
+TryAcquireSRWLockShared(
+    _Inout_ PSRWLOCK SRWLock
+    )
+{
+	if (auto const pTryAcquireSRWLockShared = try_get_TryAcquireSRWLockShared())
+	{
+		return pTryAcquireSRWLockShared(SRWLock);
+	}
+
+	//尝试给全新的锁加锁
+	auto OldSRWLock = InterlockedCompareExchange((volatile size_t*)SRWLock, size_t(0x11), 0);
+
+	//成功
+	if (OldSRWLock == size_t(0))
+	{
+		return TRUE;
+	}
+
+	for (;;)
+	{
+		if ((OldSRWLock & SRWLOCK_LOCKING) && ((OldSRWLock & SRWLOCK_WAITING) || (OldSRWLock & SRWLOCK_DATA_MARK) == size_t(0)))
+		{
+			//正在被锁定中
+			return FALSE;
+		}
+		else if (InterlockedCompareExchange((volatile size_t*)SRWLock, (OldSRWLock + size_t(0x10)) | size_t(0x1), OldSRWLock) == OldSRWLock)
+		{
+			//锁定完成
+			return TRUE;
+		}
+		else
+		{
+			Sleep(0);
+		}
+
+		OldSRWLock = *(volatile size_t*)SRWLock;
+	}
+}
+
+_LCRT_DEFINE_IAT_SYMBOL(TryAcquireSRWLockShared, _4);
+
+#endif
+
+
+#if (YY_Thunks_Support_Version < NTDDI_VISTA)
+//Windows Vista [desktop apps | UWP apps]
+//Windows Server 2008 [desktop apps | UWP apps]
+
+EXTERN_C
+VOID
+WINAPI
+ReleaseSRWLockShared(
+    _Inout_ PSRWLOCK SRWLock
+    )
+{
+	if (auto const pReleaseSRWLockShared = try_get_ReleaseSRWLockShared())
+	{
+		return pReleaseSRWLockShared(SRWLock);
+	}
+
+	//尝试解锁只加一次读锁的情况
+
+	auto OldSRWLock = InterlockedCompareExchange((volatile size_t*)SRWLock, 0, size_t(0x11));
+
+	//解锁成功
+	if (OldSRWLock == size_t(0x11))
+	{
+		return;
+	}
+
+	for (;;)
+	{
+		if (InterlockedCompareExchange((volatile size_t*)SRWLock, OldSRWLock >= size_t(0x21) ? OldSRWLock - size_t(0x10) : size_t(0), OldSRWLock) == OldSRWLock)
+		{
+			//解锁成功
+			return;
+		}
+		else
+		{
+			Sleep(0);
+		}
+
+		OldSRWLock = *(volatile size_t*)SRWLock;
+	}
+}
+
+_LCRT_DEFINE_IAT_SYMBOL(ReleaseSRWLockShared, _4);
+
+#endif
+
+	}//namespace Thunks
+
+} //namespace YY
