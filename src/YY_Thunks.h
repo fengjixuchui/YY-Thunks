@@ -32,12 +32,22 @@
         = reinterpret_cast<void const*>(_FUNCTION)
 #endif
 
+#ifdef __YY_Thunks_Unit_Test
+	#define __APPLY_UNIT_TEST_BOOL(_FUNCTION) bool _CRT_CONCATENATE(aways_null_try_get_, _FUNCTION) = false
+	#define __CHECK_UNIT_TEST_BOOL(_FUNCTION) if(_CRT_CONCATENATE(aways_null_try_get_, _FUNCTION)) return nullptr
+#else
+	#define __APPLY_UNIT_TEST_BOOL(_FUNCTION)
+	#define __CHECK_UNIT_TEST_BOOL(_FUNCTION)
+#endif
+
+
 #pragma section(".YYThu$AAA",    long, read, write) //鸭船模块缓存节点
 #pragma section(".YYThu$AAB",    long, read, write) //鸭船函数缓存节点
 #pragma section(".YYThu$AAC",    long, read, write) //保留，暂时用于边界结束
 
 #pragma section(".YYThr$AAA",    long, read)        //鸭船函数缓存初始化函数
-#pragma section(".YYThr$AAB",    long, read)        //保留，暂时用于边界结束
+#pragma section(".YYThr$AAB",    long, read)        //鸭船函数反初始化函数
+#pragma section(".YYThr$AAC",    long, read)        //保留，暂时用于边界结束
 
 #pragma comment(linker, "/merge:.YYThu=.data")
 #pragma comment(linker, "/merge:.YYThr=.rdata")
@@ -46,10 +56,14 @@ __declspec(allocate(".YYThu$AAA")) static void* __YY_THUNKS_MODULE_START[] = { n
 __declspec(allocate(".YYThu$AAB")) static void* __YY_THUNKS_FUN_START[] = { nullptr }; //鸭船指针缓存开始位置
 __declspec(allocate(".YYThu$AAC")) static void* __YY_THUNKS_FUN_END[] = { nullptr };   //鸭船指针缓存结束位置
 
-__declspec(allocate(".YYThr$AAA")) static void* __YY_THUNKS_INIT_FUN_START[] = { nullptr }; //鸭船指针缓存结束位置
-__declspec(allocate(".YYThr$AAB")) static void* __YY_THUNKS_INIT_FUN_END[] = { nullptr };   //鸭船指针缓存结束位置
+__declspec(allocate(".YYThr$AAA")) static void* __YY_THUNKS_INIT_FUN_START[] = { nullptr }; //鸭船函数初始化开始位置
+#define __YY_THUNKS_INIT_FUN_END __YY_THUNKS_UNINIT_FUN_START                               //鸭船函数初始化结束位置
+
+__declspec(allocate(".YYThr$AAB")) static void* __YY_THUNKS_UNINIT_FUN_START[] = { nullptr }; //鸭船函数反初始化函数开始
+__declspec(allocate(".YYThr$AAC")) static void* __YY_THUNKS_UNINIT_FUN_END[] = { nullptr };   //鸭船函数反初始化函数结束位置
 
 typedef void* (__cdecl* InitFunType)();
+typedef void (__cdecl* UninitFunType)();
 
 #pragma detect_mismatch("YY-Thunks-Mode", "ver:" _CRT_STRINGIZE(YY_Thunks_Support_Version))
 
@@ -360,8 +374,10 @@ static void* __fastcall try_get_function(
 
 
 #define _APPLY(_FUNCTION, _MODULE)                                                                    \
+    __APPLY_UNIT_TEST_BOOL(_FUNCTION);                                                                \
     static _CRT_CONCATENATE(_FUNCTION, _pft) __cdecl _CRT_CONCATENATE(try_get_, _FUNCTION)() noexcept \
     {                                                                                                 \
+        __CHECK_UNIT_TEST_BOOL(_FUNCTION);                                                            \
         __declspec(allocate(".YYThr$AAA")) static void* _CRT_CONCATENATE(pInit_ ,_FUNCTION) =         \
               reinterpret_cast<void*>(&_CRT_CONCATENATE(try_get_, _FUNCTION));                        \
         /*为了避免编译器将 YYThr$AAA 节优化掉*/                                                       \
@@ -412,6 +428,13 @@ static void __cdecl __YY_uninitialize_winapi_thunks()
 #if (YY_Thunks_Support_Version < NTDDI_WIN6)
 	CloseHandle(_GlobalKeyedEventHandle);
 #endif
+
+	//执行本库中所有的反初始化工作。
+	for (auto p = (UninitFunType*)__YY_THUNKS_UNINIT_FUN_START; p != (UninitFunType*)__YY_THUNKS_UNINIT_FUN_END; ++p)
+	{
+		if (auto pUninitFun = *p)
+			pUninitFun();
+	}
 }
 
 

@@ -10,12 +10,13 @@
 // 添加要在此处预编译的标头
 #define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers
 #include <Windows.h>
-
+#include <atltime.h>
 #include "CppUnitTest.h"
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
 #define __DEFINE_THUNK(_MODULE, _SIZE, _RETURN_, _CONVENTION_, _FUNCTION, ...)     \
+    extern bool _CRT_CONCATENATE(aways_null_try_get_, _FUNCTION);                  \
 	EXTERN_C _RETURN_ _CONVENTION_ _FUNCTION(__VA_ARGS__);                         \
 	__if_not_exists(_FUNCTION)
 
